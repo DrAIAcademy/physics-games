@@ -1,0 +1,1235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Projectile Motion Sci‑Fi Game | Dr AI Academy</title>
+  <style>
+    :root{
+      --bg1:#071425;
+      --bg2:#0c2443;
+      --panel:#ffffff;
+      --ink:#102033;
+      --muted:#637083;
+      --blue:#1769ff;
+      --green:#0f9d58;
+      --orange:#f57c00;
+      --red:#d93025;
+      --purple:#7b1fa2;
+      --line:#dbe6f6;
+      --soft:#f7faff;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:Arial,Helvetica,sans-serif;
+      background:linear-gradient(135deg,#eef5ff,#ffffff);
+      color:var(--ink);
+    }
+    header{
+      padding:22px 16px;
+      text-align:center;
+      background:linear-gradient(135deg,#05162d,#0d6efd);
+      color:#fff;
+    }
+    header h1{
+      margin:0 0 8px;
+      font-size:clamp(24px,4vw,42px);
+    }
+    header p{
+      margin:0;
+      opacity:.95;
+      font-size:15px;
+    }
+    .wrap{
+      max-width:1280px;
+      margin:20px auto;
+      padding:0 16px;
+      display:grid;
+      grid-template-columns:1fr 390px;
+      gap:18px;
+    }
+    .card{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:18px;
+      box-shadow:0 12px 30px rgba(16,32,51,.08);
+      overflow:hidden;
+    }
+    .game-card{
+      padding:14px;
+      position:relative;
+    }
+    canvas{
+      width:100%;
+      height:auto;
+      display:block;
+      border-radius:14px;
+      border:1px solid #dbe6f6;
+      background:#06111f;
+      cursor:crosshair;
+    }
+    #tooltip{
+      position:absolute;
+      display:none;
+      pointer-events:none;
+      max-width:340px;
+      padding:10px 12px;
+      border-radius:12px;
+      background:rgba(16,32,51,.96);
+      color:#fff;
+      font-size:13px;
+      line-height:1.42;
+      box-shadow:0 10px 24px rgba(16,32,51,.28);
+      z-index:5;
+    }
+    .controls{padding:18px}
+    h2{
+      margin:0 0 14px;
+      font-size:20px;
+    }
+    .scorebar{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:8px;
+      margin-bottom:14px;
+    }
+    .score{
+      background:#f7faff;
+      border:1px solid #e5eefb;
+      border-radius:14px;
+      padding:10px;
+    }
+    .score b{
+      display:block;
+      color:var(--muted);
+      font-size:12px;
+      margin-bottom:4px;
+    }
+    .score span{
+      font-size:18px;
+      font-weight:900;
+    }
+    .control{
+      margin-bottom:14px;
+      padding-bottom:11px;
+      border-bottom:1px dashed #d8e3f2;
+    }
+    .control:last-of-type{border-bottom:0}
+    label{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      align-items:center;
+      font-weight:900;
+      margin-bottom:8px;
+    }
+    label span{
+      color:var(--blue);
+      white-space:nowrap;
+    }
+    input[type="range"],select{
+      width:100%;
+      accent-color:var(--blue);
+    }
+    select{
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid #cbd9ec;
+      background:#fff;
+      color:var(--ink);
+      font-weight:900;
+      font-size:15px;
+    }
+    .toggles{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:8px;
+      margin:12px 0;
+    }
+    .toggle{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      background:#f7faff;
+      border:1px solid #e5eefb;
+      border-radius:12px;
+      padding:9px 10px;
+      font-weight:800;
+      font-size:13px;
+    }
+    .buttons{
+      display:grid;
+      grid-template-columns:repeat(2,1fr);
+      gap:8px;
+      margin-top:14px;
+    }
+    button{
+      border:0;
+      padding:12px 10px;
+      border-radius:12px;
+      font-weight:900;
+      cursor:pointer;
+      color:#fff;
+      background:var(--blue);
+      box-shadow:0 8px 16px rgba(23,105,255,.2);
+    }
+    button:nth-child(2){background:var(--orange)}
+    button:nth-child(3){background:var(--red)}
+    button:nth-child(4){background:var(--green)}
+    button:nth-child(5){background:var(--purple);grid-column:1/-1}
+    .hint{
+      margin-top:12px;
+      padding:10px;
+      border-radius:12px;
+      background:#eef6ff;
+      border:1px solid #d8eaff;
+      color:#0b45a0;
+      font-size:13px;
+      line-height:1.45;
+      font-weight:700;
+    }
+    .legend{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin-top:12px;
+    }
+    .pill{
+      border-radius:999px;
+      padding:7px 10px;
+      background:#f4f7fb;
+      border:1px solid #dde8f6;
+      font-size:13px;
+      font-weight:800;
+    }
+    .content-grid{
+      max-width:1280px;
+      margin:0 auto 34px;
+      padding:0 16px;
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:18px;
+    }
+    .panel{padding:18px}
+    .status{
+      padding:14px 16px;
+      border-radius:14px;
+      font-size:18px;
+      font-weight:900;
+      margin-bottom:16px;
+      text-align:center;
+      background:#eef6ff;
+      color:#0b45a0;
+      border:1px solid #d8eaff;
+    }
+    .formula-box{
+      background:#f8fbff;
+      border:1px solid #deebff;
+      border-radius:14px;
+      padding:14px;
+      margin:12px 0;
+      display:block;
+    }
+    .formula-box.hidden{display:none}
+    .formula-box code{
+      display:block;
+      font-size:17px;
+      padding:4px 0;
+      color:#0b45a0;
+      font-weight:800;
+    }
+    li{line-height:1.58}
+    footer{
+      text-align:center;
+      color:var(--muted);
+      padding:0 16px 26px;
+      font-size:14px;
+    }
+    footer a{
+      color:#0b45a0;
+      font-weight:900;
+      text-decoration:none;
+    }
+    footer a:hover{text-decoration:underline}
+    @media(max-width:940px){
+      .wrap,.content-grid{grid-template-columns:1fr}
+      .buttons{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+<header>
+  <h1>Projectile Motion Sci‑Fi Target Game</h1>
+  <p>Dr AI Academy Physics Game Lab: voice-guided NEET learning with sci-fi cannon, sound, and mission-based gameplay</p>
+</header>
+
+<main class="wrap">
+  <section class="card game-card">
+    <canvas id="gameCanvas" width="1000" height="680"></canvas>
+    <div id="tooltip"></div>
+    <div class="legend">
+      <span class="pill">Plasma cannon</span>
+      <span class="pill">Energy orb projectile</span>
+      <span class="pill">Enemy target pod</span>
+      <span class="pill">Bonus energy cells</span>
+      <span class="pill">AI voice mission guide</span>
+    </div>
+  </section>
+
+  <aside class="card controls">
+    <h2>Mission Controls</h2>
+
+    <div class="scorebar">
+      <div class="score"><b>Score</b><span id="scoreOut">0</span></div>
+      <div class="score"><b>Lives</b><span id="livesOut">5</span></div>
+      <div class="score"><b>Level</b><span id="levelOut">1</span></div>
+      <div class="score"><b>Streak</b><span id="streakOut">0</span></div>
+    </div>
+
+    <div class="control">
+      <label>Difficulty <span id="difficultyVal">NEET Basic</span></label>
+      <select id="difficulty">
+        <option value="basic" selected>NEET Basic</option>
+        <option value="medium">NEET Medium</option>
+        <option value="hard">NEET Advanced</option>
+      </select>
+    </div>
+
+    <div class="control">
+      <label>Initial velocity, u <span id="velocityVal">30 m/s</span></label>
+      <input id="velocity" type="range" min="5" max="80" step="1" value="30">
+    </div>
+
+    <div class="control">
+      <label>Launch angle, θ <span id="angleVal">45°</span></label>
+      <input id="angle" type="range" min="5" max="85" step="1" value="45">
+    </div>
+
+    <div class="control">
+      <label>Gravity, g <span id="gravityVal">9.8 m/s²</span></label>
+      <input id="gravity" type="range" min="1.6" max="15" step="0.1" value="9.8">
+    </div>
+
+    <div class="control">
+      <label>Launch height <span id="heightVal">0 m</span></label>
+      <input id="height" type="range" min="0" max="50" step="1" value="0">
+    </div>
+
+    <div class="toggles">
+      <label class="toggle"><input id="showGhost" type="checkbox" checked> Preview path</label>
+      <label class="toggle"><input id="showVectors" type="checkbox" checked> Components</label>
+      <label class="toggle"><input id="voiceOn" type="checkbox" checked> Voice guide</label>
+      <label class="toggle"><input id="soundOn" type="checkbox" checked> Sound FX</label>
+      <label class="toggle"><input id="showFormula" type="checkbox" checked> Formula help</label>
+      <label class="toggle"><input id="showTooltips" type="checkbox" checked> Hover info</label>
+    </div>
+
+    <div class="buttons">
+      <button id="launchBtn">Launch</button>
+      <button id="pauseBtn">Pause / Resume</button>
+      <button id="resetShotBtn">Reset Shot</button>
+      <button id="newTargetBtn">New Target</button>
+      <button id="newGameBtn">Restart Game</button>
+    </div>
+
+    <div class="hint" id="liveHint">
+      Mission: destroy the target pod by selecting the correct velocity and angle.
+    </div>
+  </aside>
+</main>
+
+<section class="content-grid">
+  <section class="card panel">
+    <h2>Live Physics</h2>
+    <div id="gameStatus" class="status">Ready: set velocity and angle, then launch.</div>
+    <div class="scorebar">
+      <div class="score"><b>uₓ = u cosθ</b><span id="uxOut">--</span></div>
+      <div class="score"><b>uᵧ = u sinθ</b><span id="uyOut">--</span></div>
+      <div class="score"><b>Time of flight</b><span id="tofOut">--</span></div>
+      <div class="score"><b>Range</b><span id="rangeOut">--</span></div>
+      <div class="score"><b>Max height</b><span id="hmaxOut">--</span></div>
+      <div class="score"><b>Target distance</b><span id="targetOut">--</span></div>
+    </div>
+  </section>
+
+  <section class="card panel">
+    <h2>Formula Help</h2>
+    <div id="formulaBox" class="formula-box">
+      <code>uₓ = u cosθ</code>
+      <code>uᵧ = u sinθ</code>
+      <code>x = u cosθ × t</code>
+      <code>y = h + u sinθ × t − ½gt²</code>
+      <code>For same launch and landing level: R = u²sin2θ/g</code>
+      <code>H = u²sin²θ/2g</code>
+      <code>T = 2u sinθ/g (same level case)</code>
+    </div>
+    <p><b>NEET key:</b> horizontal motion and vertical motion are independent.</p>
+  </section>
+
+  <section class="card panel">
+    <h2>NEET Traps</h2>
+    <ul>
+      <li>At highest point, vertical velocity becomes zero but horizontal velocity remains non-zero.</li>
+      <li>Acceleration is always downward due to gravity.</li>
+      <li>45° gives maximum range only for same launch and landing level.</li>
+      <li>Horizontal velocity remains constant if air resistance is neglected.</li>
+      <li>Complementary angles give same range only for same level projection.</li>
+    </ul>
+  </section>
+
+  <section class="card panel">
+    <h2>Learning Goal</h2>
+    <ul>
+      <li>Learn projectile range visually.</li>
+      <li>Understand velocity components.</li>
+      <li>Observe how gravity changes the path.</li>
+      <li>Use prediction before launch.</li>
+      <li>Practice NEET-style thinking in a game format.</li>
+    </ul>
+  </section>
+</section>
+
+<footer>
+  <a href="https://courses.draiacademy.com" target="_blank" rel="noopener">Dr AI Academy</a> | AI Powered Physics Game Lab for NEET
+</footer>
+
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const tooltip = document.getElementById('tooltip');
+
+const velocityEl = document.getElementById('velocity');
+const angleEl = document.getElementById('angle');
+const gravityEl = document.getElementById('gravity');
+const heightEl = document.getElementById('height');
+const difficultyEl = document.getElementById('difficulty');
+const showGhostEl = document.getElementById('showGhost');
+const showFormulaEl = document.getElementById('showFormula');
+const showVectorsEl = document.getElementById('showVectors');
+const showTooltipsEl = document.getElementById('showTooltips');
+const voiceOnEl = document.getElementById('voiceOn');
+const soundOnEl = document.getElementById('soundOn');
+
+const velocityVal = document.getElementById('velocityVal');
+const angleVal = document.getElementById('angleVal');
+const gravityVal = document.getElementById('gravityVal');
+const heightVal = document.getElementById('heightVal');
+const difficultyVal = document.getElementById('difficultyVal');
+
+const scoreOut = document.getElementById('scoreOut');
+const livesOut = document.getElementById('livesOut');
+const levelOut = document.getElementById('levelOut');
+const streakOut = document.getElementById('streakOut');
+const uxOut = document.getElementById('uxOut');
+const uyOut = document.getElementById('uyOut');
+const tofOut = document.getElementById('tofOut');
+const rangeOut = document.getElementById('rangeOut');
+const hmaxOut = document.getElementById('hmaxOut');
+const targetOut = document.getElementById('targetOut');
+const gameStatus = document.getElementById('gameStatus');
+const liveHint = document.getElementById('liveHint');
+const formulaBox = document.getElementById('formulaBox');
+
+const launchBtn = document.getElementById('launchBtn');
+const pauseBtn = document.getElementById('pauseBtn');
+const resetShotBtn = document.getElementById('resetShotBtn');
+const newTargetBtn = document.getElementById('newTargetBtn');
+const newGameBtn = document.getElementById('newGameBtn');
+
+let audioCtx = null;
+let audioUnlocked = false;
+
+const world = {
+  cannonX: 90,
+  groundY: 580,
+  scale: 6.1
+};
+
+let state = {
+  score:0,
+  lives:5,
+  level:1,
+  streak:0,
+  running:false,
+  paused:false,
+  last:null,
+  projectile:null,
+  target:null,
+  message:'Ready: set velocity and angle, then launch.',
+  hoverItems:[],
+  stars:[],
+  explosions:[]
+};
+
+const starfield = [];
+for(let i=0;i<90;i++){
+  starfield.push({x:Math.random()*canvas.width,y:Math.random()*270,r:Math.random()*2+0.4,s:Math.random()*0.8+0.2});
+}
+
+function clamp(n,a,b){ return Math.max(a,Math.min(b,n)); }
+function rand(min,max){ return Math.random()*(max-min)+min; }
+function fmt(n,u=''){ return Number.isFinite(n)?`${n.toFixed(2)} ${u}`.trim():'--'; }
+
+function unlockAudio(){
+  if(audioUnlocked) return;
+  try{
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    audioUnlocked = true;
+  }catch(e){}
+}
+
+function playTone(freq=440,duration=0.12,type='sine',vol=0.04,slideTo=null){
+  if(!soundOnEl.checked || !audioUnlocked || !audioCtx) return;
+  const o = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  o.type = type;
+  o.frequency.value = freq;
+  g.gain.value = vol;
+  o.connect(g);
+  g.connect(audioCtx.destination);
+  const now = audioCtx.currentTime;
+  if(slideTo !== null) o.frequency.linearRampToValueAtTime(slideTo, now + duration);
+  g.gain.setValueAtTime(vol, now);
+  g.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+  o.start(now);
+  o.stop(now + duration);
+}
+
+function playLaunchSound(){
+  playTone(420,0.08,'sawtooth',0.05,860);
+  setTimeout(()=>playTone(920,0.06,'square',0.04,540),40);
+}
+function playHitSound(){
+  playTone(620,0.1,'triangle',0.05,980);
+  setTimeout(()=>playTone(980,0.14,'triangle',0.04,1300),70);
+}
+function playMissSound(){
+  playTone(220,0.12,'sawtooth',0.05,150);
+}
+function playBonusSound(){
+  playTone(800,0.08,'sine',0.035,1050);
+}
+
+function speak(text){
+  if(!voiceOnEl.checked || !('speechSynthesis' in window)) return;
+  window.speechSynthesis.cancel();
+  const ut = new SpeechSynthesisUtterance(text);
+  ut.rate = 1.02;
+  ut.pitch = 1;
+  ut.volume = 1;
+  window.speechSynthesis.speak(ut);
+}
+
+function addHover(x,y,w,h,title,text){
+  state.hoverItems.push({x,y,w,h,title,text});
+}
+
+function getDifficultyName(){
+  return difficultyEl.options[difficultyEl.selectedIndex].text;
+}
+
+function getInput(){
+  const u = +velocityEl.value;
+  const angle = +angleEl.value;
+  const g = +gravityEl.value;
+  const h = +heightEl.value;
+  const th = angle*Math.PI/180;
+  const ux = u*Math.cos(th);
+  const uy = u*Math.sin(th);
+  const tof = (uy + Math.sqrt(uy*uy + 2*g*h))/g;
+  const range = ux*tof;
+  const hmax = h + uy*uy/(2*g);
+  return {u,angle,g,h,th,ux,uy,tof,range,hmax};
+}
+
+function worldToCanvasX(x){ return world.cannonX + x*world.scale; }
+function worldToCanvasY(y){ return world.groundY - y*world.scale; }
+
+function createTarget(){
+  const d = difficultyEl.value;
+  const min = d==='basic'?28:d==='medium'?40:52;
+  const max = d==='basic'?100:d==='medium'?128:150;
+  const width = d==='basic'?8:d==='medium'?6:4.5;
+  const height = d==='basic'?8:d==='medium'?10:12;
+  const x = rand(min,max);
+
+  state.target = {
+    x,
+    width,
+    height,
+    pulse:0
+  };
+
+  state.stars = [];
+  const count = d==='hard'?3:d==='medium'?2:1;
+  for(let i=0;i<count;i++){
+    state.stars.push({
+      x: rand(min,max),
+      y: rand(18,48),
+      taken:false
+    });
+  }
+}
+
+function updateUI(){
+  const inp = getInput();
+  velocityVal.textContent = `${inp.u} m/s`;
+  angleVal.textContent = `${inp.angle}°`;
+  gravityVal.textContent = `${inp.g.toFixed(1)} m/s²`;
+  heightVal.textContent = `${inp.h} m`;
+  difficultyVal.textContent = getDifficultyName();
+  formulaBox.classList.toggle('hidden', !showFormulaEl.checked);
+
+  scoreOut.textContent = state.score;
+  livesOut.textContent = state.lives;
+  levelOut.textContent = state.level;
+  streakOut.textContent = state.streak;
+
+  uxOut.textContent = fmt(inp.ux,'m/s');
+  uyOut.textContent = fmt(inp.uy,'m/s');
+  tofOut.textContent = fmt(inp.tof,'s');
+  rangeOut.textContent = fmt(inp.range,'m');
+  hmaxOut.textContent = fmt(inp.hmax,'m');
+  targetOut.textContent = state.target ? fmt(state.target.x,'m') : '--';
+
+  gameStatus.textContent = state.message;
+  liveHint.innerHTML = buildHint(inp);
+}
+
+function buildHint(inp){
+  if(!state.target) return 'Loading mission target...';
+  const diff = state.target.x - inp.range;
+  if(Math.abs(diff) <= state.target.width){
+    return 'Prediction: your range is inside target zone. Excellent shot possible.';
+  }
+  if(diff > 0){
+    return 'Target is farther. Try increasing velocity or adjusting angle toward optimum.';
+  }
+  return 'Target is nearer. Reduce velocity or tune angle carefully.';
+}
+
+function drawBackground(time){
+  const g = ctx.createLinearGradient(0,0,0,canvas.height);
+  g.addColorStop(0,'#05101d');
+  g.addColorStop(0.5,'#0b1d34');
+  g.addColorStop(1,'#132c4b');
+  ctx.fillStyle = g;
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+
+  // stars
+  ctx.save();
+  starfield.forEach(s=>{
+    const alpha = 0.35 + 0.4*Math.sin(time*0.001*s.s + s.x*0.01);
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = '#d7ecff';
+    ctx.beginPath();
+    ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+    ctx.fill();
+  });
+  ctx.restore();
+
+  // futuristic skyline
+  ctx.save();
+  ctx.fillStyle = 'rgba(58,140,255,0.16)';
+  for(let i=0;i<18;i++){
+    const x = 20 + i*55;
+    const h = 35 + (i%5)*18 + ((i*13)%11);
+    ctx.fillRect(x, world.groundY-h, 30, h);
+  }
+  ctx.restore();
+
+  // hologrid
+  ctx.save();
+  ctx.strokeStyle = 'rgba(40,200,255,0.18)';
+  ctx.lineWidth = 1;
+  for(let x=0;x<canvas.width;x+=50){
+    ctx.beginPath();
+    ctx.moveTo(x,world.groundY);
+    ctx.lineTo(x+80,world.groundY+70);
+    ctx.stroke();
+  }
+  for(let y=0;y<6;y++){
+    ctx.beginPath();
+    ctx.moveTo(0,world.groundY+y*12);
+    ctx.lineTo(canvas.width,world.groundY+y*12);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawHeader(){
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 24px Arial';
+  ctx.fillText('Projectile Motion: Sci‑Fi Rescue Mission', 24, 38);
+  ctx.fillStyle = 'rgba(225,240,255,0.92)';
+  ctx.font = '15px Arial';
+  ctx.fillText('Destroy the target pod by applying the correct physics. Voice, sound, and visuals included.', 24, 62);
+}
+
+function drawGround(){
+  ctx.save();
+  ctx.fillStyle = '#09243e';
+  ctx.fillRect(0,world.groundY,canvas.width,100);
+
+  ctx.strokeStyle = '#38c5ff';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(0,world.groundY);
+  ctx.lineTo(canvas.width,world.groundY);
+  ctx.stroke();
+
+  ctx.fillStyle = 'rgba(56,197,255,0.20)';
+  for(let m=0;m<=160;m+=20){
+    const x = worldToCanvasX(m);
+    ctx.fillRect(x-1, world.groundY-10, 2, 10);
+    ctx.fillStyle = '#bde6ff';
+    ctx.font = '12px Arial';
+    ctx.fillText(`${m}m`, x-12, world.groundY+24);
+  }
+  ctx.restore();
+
+  addHover(0,world.groundY-12,canvas.width,95,'Ground / range axis','This horizontal axis shows range. Projectile range is the horizontal distance travelled.');
+}
+
+function drawCannonGlow(x,y,r,alpha){
+  ctx.save();
+  const grad = ctx.createRadialGradient(x,y,4,x,y,r);
+  grad.addColorStop(0,`rgba(85,210,255,${alpha})`);
+  grad.addColorStop(1,'rgba(85,210,255,0)');
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.arc(x,y,r,0,Math.PI*2);
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawCannon(){
+  const inp = getInput();
+  const baseX = world.cannonX;
+  const baseY = world.groundY - inp.h*world.scale;
+  const ang = -inp.th;
+  const len = 72;
+
+  drawCannonGlow(baseX+22,baseY,30,0.35);
+
+  // base
+  ctx.save();
+  ctx.fillStyle = '#0a1730';
+  ctx.beginPath();
+  ctx.arc(baseX,baseY,24,0,Math.PI*2);
+  ctx.fill();
+
+  ctx.strokeStyle = '#53d4ff';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.arc(baseX,baseY,24,0,Math.PI*2);
+  ctx.stroke();
+  ctx.restore();
+
+  // barrel
+  ctx.save();
+  ctx.translate(baseX,baseY);
+  ctx.rotate(ang);
+
+  ctx.fillStyle = '#11284d';
+  ctx.fillRect(0,-10,len,20);
+
+  ctx.strokeStyle = '#53d4ff';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(0,-10,len,20);
+
+  ctx.fillStyle = '#7fe5ff';
+  ctx.fillRect(len-10,-7,10,14);
+
+  ctx.restore();
+
+  ctx.save();
+  ctx.fillStyle = '#d8f6ff';
+  ctx.font = 'bold 13px Arial';
+  ctx.fillText('Plasma Cannon', baseX-26, baseY+42);
+  ctx.restore();
+
+  if(showVectorsEl.checked){
+    const sx = 2.4;
+    arrow(baseX,baseY-46, baseX + inp.ux*sx, baseY-46, '#15ff80', 'ux');
+    arrow(baseX,baseY-46, baseX, baseY-46 - inp.uy*sx, '#ffbf00', 'uy');
+  }
+
+  addHover(baseX-28,baseY-28,112,85,'Sci‑fi cannon','This cannon gives the projectile initial velocity u at angle θ. Initial velocity is resolved into ux and uy.');
+}
+
+function arrow(x1,y1,x2,y2,c,label=''){
+  const a = Math.atan2(y2-y1,x2-x1);
+  const h = 10;
+  ctx.save();
+  ctx.strokeStyle = c;
+  ctx.fillStyle = c;
+  ctx.lineWidth = 3.5;
+  ctx.beginPath();
+  ctx.moveTo(x1,y1);
+  ctx.lineTo(x2,y2);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(x2,y2);
+  ctx.lineTo(x2-h*Math.cos(a-Math.PI/6), y2-h*Math.sin(a-Math.PI/6));
+  ctx.lineTo(x2-h*Math.cos(a+Math.PI/6), y2-h*Math.sin(a+Math.PI/6));
+  ctx.closePath();
+  ctx.fill();
+  if(label){
+    ctx.font = 'bold 13px Arial';
+    ctx.fillText(label,x2+6,y2-7);
+  }
+  ctx.restore();
+}
+
+function drawTarget(){
+  if(!state.target) return;
+  const tx = worldToCanvasX(state.target.x);
+  const zoneW = state.target.width * world.scale;
+  const th = state.target.height * world.scale;
+  const pulse = 0.65 + 0.35*Math.sin(performance.now()*0.006);
+
+  // target zone
+  ctx.save();
+  ctx.strokeStyle = `rgba(21,255,128,${0.35 + pulse*0.35})`;
+  ctx.lineWidth = 2;
+  ctx.setLineDash([6,5]);
+  ctx.strokeRect(tx-zoneW, world.groundY-th-20, zoneW*2, th+20);
+  ctx.setLineDash([]);
+  ctx.restore();
+
+  // pod
+  ctx.save();
+  const grad = ctx.createRadialGradient(tx, world.groundY-th/2, 4, tx, world.groundY-th/2, 40);
+  grad.addColorStop(0, `rgba(255,90,90,${0.85})`);
+  grad.addColorStop(1, 'rgba(255,90,90,0)');
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.arc(tx, world.groundY-th/2, 40, 0, Math.PI*2);
+  ctx.fill();
+
+  ctx.fillStyle = '#391014';
+  ctx.strokeStyle = '#ff6f6f';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.roundRect(tx-22, world.groundY-th-8, 44, th, 10);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.fillStyle = '#ffd2d2';
+  ctx.beginPath();
+  ctx.arc(tx, world.groundY-th/2-2, 8, 0, Math.PI*2);
+  ctx.fill();
+
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 13px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText(`Target ${state.target.x.toFixed(1)}m`, tx, world.groundY-th-20);
+  ctx.restore();
+
+  addHover(tx-zoneW-8,world.groundY-th-35,zoneW*2+16,th+45,'Enemy target pod','Land on this target zone or strike the pod to score points.');
+}
+
+function drawStars(){
+  ctx.save();
+  state.stars.forEach(st=>{
+    if(st.taken) return;
+    const x = worldToCanvasX(st.x);
+    const y = worldToCanvasY(st.y);
+    ctx.fillStyle = '#f9df6d';
+    drawStar(x,y,10);
+    ctx.strokeStyle = '#fff2a8';
+    ctx.stroke();
+    addHover(x-12,y-12,24,24,'Energy cell','Collect this bonus object during flight for extra score.');
+  });
+  ctx.restore();
+}
+function drawStar(cx,cy,r){
+  ctx.beginPath();
+  for(let i=0;i<10;i++){
+    const a = -Math.PI/2 + i*Math.PI/5;
+    const rr = i%2===0 ? r : r*0.45;
+    const x = cx + rr*Math.cos(a);
+    const y = cy + rr*Math.sin(a);
+    if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+  }
+  ctx.closePath();
+  ctx.fill();
+}
+
+function drawPreviewPath(){
+  if(!showGhostEl.checked || state.projectile?.active) return;
+  const inp = getInput();
+
+  ctx.save();
+  ctx.strokeStyle = 'rgba(94,170,255,0.75)';
+  ctx.lineWidth = 2.5;
+  ctx.setLineDash([8,6]);
+  ctx.beginPath();
+  let started = false;
+  for(let tt=0; tt<=inp.tof; tt += inp.tof/90){
+    const x = inp.ux*tt;
+    const y = inp.h + inp.uy*tt - 0.5*inp.g*tt*tt;
+    const px = worldToCanvasX(x);
+    const py = worldToCanvasY(y);
+    if(!started){ ctx.moveTo(px,py); started = true; }
+    else ctx.lineTo(px,py);
+  }
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.restore();
+
+  addHover(150,120,430,180,'Preview trajectory','This dotted line predicts the projectile path using x = ux·t and y = h + uy·t − ½gt².');
+}
+
+function drawProjectile(){
+  if(!state.projectile) return;
+  const p = state.projectile;
+  const x = worldToCanvasX(p.x);
+  const y = worldToCanvasY(p.y);
+
+  // trail
+  ctx.save();
+  ctx.strokeStyle = 'rgba(81,204,255,0.9)';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  p.trail.forEach((pt,i)=>{
+    const px = worldToCanvasX(pt.x);
+    const py = worldToCanvasY(pt.y);
+    if(i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+  });
+  ctx.stroke();
+  ctx.restore();
+
+  // orb glow
+  ctx.save();
+  const grad = ctx.createRadialGradient(x,y,2,x,y,18);
+  grad.addColorStop(0,'rgba(255,255,255,1)');
+  grad.addColorStop(0.4,'rgba(92,225,255,0.95)');
+  grad.addColorStop(1,'rgba(92,225,255,0)');
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.arc(x,y,18,0,Math.PI*2);
+  ctx.fill();
+
+  ctx.fillStyle = '#dcffff';
+  ctx.beginPath();
+  ctx.arc(x,y,7,0,Math.PI*2);
+  ctx.fill();
+  ctx.restore();
+
+  addHover(x-18,y-18,36,36,'Energy projectile','Projectile follows projectile motion: horizontal speed constant, vertical speed changes due to gravity.');
+}
+
+function drawExplosions(){
+  ctx.save();
+  state.explosions.forEach(ex=>{
+    const x = worldToCanvasX(ex.x);
+    const y = worldToCanvasY(ex.y);
+    const r = ex.radius;
+    const grad = ctx.createRadialGradient(x,y,2,x,y,r);
+    grad.addColorStop(0,'rgba(255,255,255,0.95)');
+    grad.addColorStop(0.2,'rgba(255,230,110,0.9)');
+    grad.addColorStop(0.55,'rgba(255,120,50,0.75)');
+    grad.addColorStop(1,'rgba(255,120,50,0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(x,y,r,0,Math.PI*2);
+    ctx.fill();
+  });
+  ctx.restore();
+}
+
+function drawMissionPanel(){
+  const inp = getInput();
+  ctx.save();
+  ctx.fillStyle = 'rgba(6,20,36,0.82)';
+  ctx.strokeStyle = 'rgba(90,190,255,0.55)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.roundRect(675,90,290,155,14);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 16px Arial';
+  ctx.fillText('Mission Data',695,118);
+
+  ctx.font = '13px Arial';
+  ctx.fillText(`Predicted range: ${inp.range.toFixed(2)} m`,695,150);
+  ctx.fillText(`Target distance: ${state.target ? state.target.x.toFixed(2) : '--'} m`,695,175);
+  const diff = state.target ? (state.target.x - inp.range) : 0;
+  ctx.fillText(`Difference: ${diff.toFixed(2)} m`,695,200);
+
+  ctx.fillStyle = Math.abs(diff) <= (state.target ? state.target.width : 0) ? '#5cff9e' : '#ff8b8b';
+  ctx.font = 'bold 14px Arial';
+  ctx.fillText(Math.abs(diff) <= (state.target ? state.target.width : 0) ? 'Prediction: Hit possible' : 'Prediction: Need adjustment',695,226);
+  ctx.restore();
+
+  addHover(675,90,290,155,'Mission panel','Compare predicted range with target distance before launching.');
+}
+
+function drawWatermark(){
+  ctx.save();
+  ctx.globalAlpha = 0.16;
+  ctx.fillStyle = '#a9d9ff';
+  ctx.textAlign = 'right';
+  ctx.font = 'bold 22px Arial';
+  ctx.fillText('Dr AI Academy', canvas.width-26, canvas.height-40);
+  ctx.font = '12px Arial';
+  ctx.fillText('AI Powered Physics Game Lab', canvas.width-26, canvas.height-20);
+  ctx.restore();
+}
+
+function drawScene(time=0){
+  updateUI();
+  state.hoverItems = [];
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  drawBackground(time);
+  drawHeader();
+  drawGround();
+  drawTarget();
+  drawStars();
+  drawPreviewPath();
+  drawCannon();
+  drawProjectile();
+  drawExplosions();
+  drawMissionPanel();
+  drawWatermark();
+}
+
+function launch(){
+  unlockAudio();
+  if(state.lives <= 0){
+    state.message = 'Game over. Restart game to continue.';
+    speak('Game over. Please restart the mission.');
+    drawScene(performance.now());
+    return;
+  }
+  const inp = getInput();
+  state.projectile = {
+    x:0,
+    y:inp.h,
+    ux:inp.ux,
+    uy:inp.uy,
+    g:inp.g,
+    t:0,
+    trail:[],
+    active:true,
+    hit:false
+  };
+  state.running = true;
+  state.paused = false;
+  state.last = null;
+  state.message = 'Launch initiated. Track the projectile.';
+  playLaunchSound();
+  speak(`Launch initiated. Velocity ${inp.u} meter per second. Angle ${inp.angle} degrees.`);
+}
+
+function pauseResume(){
+  unlockAudio();
+  if(!state.running) return;
+  state.paused = !state.paused;
+  state.message = state.paused ? 'Paused.' : 'Resumed.';
+  speak(state.paused ? 'Mission paused.' : 'Mission resumed.');
+}
+
+function resetShot(){
+  state.projectile = null;
+  state.running = false;
+  state.paused = false;
+  state.message = 'Shot reset. Adjust and launch again.';
+  speak('Shot reset.');
+}
+
+function newTarget(){
+  createTarget();
+  state.projectile = null;
+  state.running = false;
+  state.paused = false;
+  state.message = 'New target generated.';
+  speak('New target pod detected.');
+}
+
+function restartGame(){
+  unlockAudio();
+  state.score = 0;
+  state.lives = 5;
+  state.level = 1;
+  state.streak = 0;
+  state.projectile = null;
+  state.running = false;
+  state.paused = false;
+  state.explosions = [];
+  createTarget();
+  state.message = 'New game started. Destroy the target pod.';
+  speak('Welcome cadet. New mission started. Destroy the target pod using projectile motion.');
+}
+
+function addExplosion(x,y){
+  state.explosions.push({x,y,radius:2,life:0.45});
+}
+
+function updateExplosions(dt){
+  state.explosions.forEach(ex=>{
+    ex.life -= dt;
+    ex.radius += 130*dt;
+  });
+  state.explosions = state.explosions.filter(ex=>ex.life > 0);
+}
+
+function hitTarget(){
+  state.projectile.hit = true;
+  state.projectile.active = false;
+  state.running = false;
+
+  const err = Math.abs(state.projectile.x - state.target.x);
+  const precision = Math.max(0,1 - err/Math.max(0.001,state.target.width));
+  const bonus = Math.round(60 + precision*60 + state.streak*10);
+  state.score += bonus;
+  state.streak += 1;
+
+  if(state.streak % 3 === 0){
+    state.level += 1;
+    state.score += 40;
+    speak(`Direct hit. Level up. You are now on level ${state.level}.`);
+  }else{
+    speak('Direct hit. Excellent use of projectile motion.');
+  }
+
+  addExplosion(state.target.x, state.target.height*0.6);
+  playHitSound();
+  state.message = `Direct hit! +${bonus} points.`;
+  createTarget();
+}
+
+function missTarget(err){
+  state.projectile.active = false;
+  state.running = false;
+  state.lives -= 1;
+  state.streak = 0;
+  playMissSound();
+  if(state.lives <= 0){
+    state.message = `Missed by ${err.toFixed(2)} m. Game over.`;
+    speak('Missed target. Game over.');
+  }else{
+    state.message = `Missed by ${err.toFixed(2)} m. Lives left: ${state.lives}.`;
+    speak(`Missed target. You are ${err.toFixed(1)} meter away. ${state.lives} lives remaining.`);
+  }
+}
+
+function updateProjectile(dt){
+  if(!state.projectile || !state.projectile.active || state.paused) return;
+
+  const p = state.projectile;
+  p.t += dt;
+  p.x = p.ux*p.t;
+  p.y = getInput().h + p.uy*p.t - 0.5*p.g*p.t*p.t;
+  p.trail.push({x:p.x,y:p.y});
+  if(p.trail.length > 240) p.trail.shift();
+
+  // collect stars
+  state.stars.forEach(st=>{
+    if(st.taken) return;
+    if(Math.hypot(p.x-st.x, p.y-st.y) < 4){
+      st.taken = true;
+      state.score += 15;
+      playBonusSound();
+      state.message = 'Energy cell collected! +15 points.';
+    }
+  });
+
+  // direct target collision
+  if(state.target){
+    const inX = p.x >= state.target.x - state.target.width/2 && p.x <= state.target.x + state.target.width/2;
+    const inY = p.y >= 0 && p.y <= state.target.height;
+    if(inX && inY){
+      hitTarget();
+      return;
+    }
+  }
+
+  // landing
+  if(p.y <= 0 && p.t > 0.04){
+    p.y = 0;
+    const err = Math.abs(p.x - state.target.x);
+    if(err <= state.target.width){
+      hitTarget();
+    }else{
+      missTarget(err);
+    }
+  }
+}
+
+function animate(ts){
+  if(state.last === null) state.last = ts;
+  const dt = Math.min(0.04, (ts - state.last)/1000);
+  state.last = ts;
+
+  if(state.running && !state.paused){
+    updateProjectile(dt);
+  }
+  updateExplosions(dt);
+  drawScene(ts);
+  requestAnimationFrame(animate);
+}
+
+function canvasPoint(evt){
+  const rect = canvas.getBoundingClientRect();
+  return {
+    x:(evt.clientX-rect.left)*canvas.width/rect.width,
+    y:(evt.clientY-rect.top)*canvas.height/rect.height,
+    cssX:evt.clientX-rect.left,
+    cssY:evt.clientY-rect.top
+  };
+}
+
+canvas.addEventListener('mousemove', evt=>{
+  if(!showTooltipsEl.checked){
+    tooltip.style.display = 'none';
+    return;
+  }
+  const p = canvasPoint(evt);
+  const item = state.hoverItems.find(it => p.x>=it.x && p.x<=it.x+it.w && p.y>=it.y && p.y<=it.y+it.h);
+  if(item){
+    tooltip.innerHTML = `<strong>${item.title}</strong><br>${item.text}`;
+    tooltip.style.display = 'block';
+    tooltip.style.left = `${Math.min(p.cssX+14, canvas.clientWidth-345)}px`;
+    tooltip.style.top = `${Math.max(12, p.cssY+14)}px`;
+  }else{
+    tooltip.style.display = 'none';
+  }
+});
+canvas.addEventListener('mouseleave', ()=> tooltip.style.display='none');
+
+[velocityEl,angleEl,gravityEl,heightEl,difficultyEl,showGhostEl,showFormulaEl,showVectorsEl,showTooltipsEl,voiceOnEl,soundOnEl].forEach(el=>{
+  el.addEventListener('input', ()=>{
+    if(el === difficultyEl){
+      difficultyVal.textContent = getDifficultyName();
+    }
+    if(!state.running) drawScene(performance.now());
+  });
+  el.addEventListener('change', ()=>{
+    if(el === difficultyEl){
+      createTarget();
+      state.message = 'Difficulty changed. New target generated.';
+    }
+    if(!state.running) drawScene(performance.now());
+  });
+});
+
+launchBtn.addEventListener('click', launch);
+pauseBtn.addEventListener('click', pauseResume);
+resetShotBtn.addEventListener('click', resetShot);
+newTargetBtn.addEventListener('click', ()=>{ unlockAudio(); newTarget(); });
+newGameBtn.addEventListener('click', restartGame);
+
+// first target
+createTarget();
+drawScene(performance.now());
+requestAnimationFrame(animate);
+</script>
+</body>
+</html>
