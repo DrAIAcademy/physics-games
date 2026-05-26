@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Electric Field Charge Battle | Dr AI Academy</title>
+  <style>
+    :root {
+      --panel:#ffffff;
+      --ink:#102033;
+      --muted:#637083;
+      --blue:#1769ff;
+      --green:#0f9d58;
+      --orange:#f57c00;
+      --red:#d93025;
+      --purple:#7b1fa2;
+      --line:#dbe6f6;
+      --soft:#f7fbff;
+      --shadow:0 14px 30px rgba(16,32,51,.14);
+    }
+
+    * { box-sizing:border-box; }
+
+    body {
+      margin:0;
+      font-family:"Trebuchet MS", Arial, sans-serif;
+      background:linear-gradient(180deg,#edf7ff,#ffffff);
+      color:var(--ink);
+    }
+
+    header {
+      text-align:center;
+      padding:22px 16px;
+      color:#fff;
+      background:linear-gradient(135deg,#061d49,#0d6efd);
+    }
+
+    header h1 {
+      margin:0 0 8px;
+      font-size:clamp(26px,4vw,44px);
+      font-weight:1000;
+    }
+
+    header p {
+      margin:0;
+      opacity:.95;
+      font-size:16px;
+    }
+
+    .app {
+      max-width:1280px;
+      margin:22px auto 34px;
+      padding:0 16px;
+    }
+
+    .game-stage-card {
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:24px;
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+
+    .top-hud {
+      display:grid;
+      grid-template-columns:repeat(5,1fr);
+      gap:10px;
+      padding:14px;
+      background:linear-gradient(180deg,#ffffff,#f4f9ff);
+      border-bottom:1px solid var(--line);
+    }
+
+    .hud-box {
+      border:2px solid #dbeafe;
+      border-radius:16px;
+      background:linear-gradient(180deg,#ffffff,#eef7ff);
+      padding:10px 12px;
+      text-align:center;
+    }
+
+    .hud-box b {
+      display:block;
+      color:var(--muted);
+      font-size:13px;
+      margin-bottom:4px;
+    }
+
+    .hud-box span {
+      font-size:24px;
+      color:#0b3d7a;
+      font-weight:1000;
+    }
+
+    .game-window {
+      position:relative;
+      width:100%;
+      aspect-ratio:16/8.2;
+      min-height:520px;
+      background:#06122b;
+    }
+
+    canvas#gameCanvas {
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+      display:block;
+      z-index:1;
+    }
+
+    .game-message {
+      position:absolute;
+      left:50%;
+      bottom:18px;
+      transform:translateX(-50%);
+      min-width:340px;
+      max-width:82%;
+      text-align:center;
+      background:rgba(10,18,45,.92);
+      border:3px solid rgba(255,255,255,.35);
+      border-radius:999px;
+      color:#fff2cc;
+      padding:10px 22px;
+      font-weight:1000;
+      font-size:20px;
+      z-index:2;
+      box-shadow:0 8px 20px rgba(0,0,0,.18);
+      pointer-events:none;
+    }
+
+    .watermark {
+      position:absolute;
+      right:18px;
+      bottom:18px;
+      color:rgba(255,255,255,.78);
+      text-align:right;
+      font-weight:900;
+      text-shadow:1px 1px 3px rgba(0,0,0,.35);
+      z-index:2;
+      pointer-events:none;
+    }
+
+    .workspace {
+      display:grid;
+      grid-template-columns:1.1fr .9fr;
+      gap:18px;
+      margin-top:18px;
+    }
+
+    .card {
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:22px;
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+
+    .card-head {
+      padding:16px 18px;
+      background:linear-gradient(180deg,#ffffff,#f4f9ff);
+      border-bottom:1px solid var(--line);
+    }
+
+    .card-head h2 {
+      margin:0;
+      font-size:22px;
+      color:#102033;
+    }
+
+    .card-body { padding:18px; }
+
+    .control-grid {
+      display:grid;
+      grid-template-columns:1fr;
+      gap:14px;
+    }
+
+    .control-box {
+      border:2px solid #e3edf9;
+      background:linear-gradient(180deg,#ffffff,#f7fbff);
+      border-radius:18px;
+      padding:14px;
+    }
+
+    .control-title {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      margin-bottom:10px;
+      font-weight:1000;
+      color:#243244;
+      font-size:18px;
+    }
+
+    .control-title span {
+      min-width:112px;
+      text-align:center;
+      color:#0b55a4;
+      background:#eaf4ff;
+      border:2px solid #cfe4ff;
+      padding:6px 10px;
+      border-radius:12px;
+      font-weight:1000;
+    }
+
+    input[type="range"] {
+      width:100%;
+      accent-color:var(--blue);
+      cursor:pointer;
+    }
+
+    select {
+      width:100%;
+      padding:12px;
+      border-radius:14px;
+      border:2px solid #cfe4ff;
+      background:#fff;
+      color:#102033;
+      font-weight:900;
+      font-size:16px;
+    }
+
+    .button-row {
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
+      margin-top:16px;
+    }
+
+    button {
+      border:0;
+      border-radius:16px;
+      padding:14px 16px;
+      font-size:17px;
+      font-weight:1000;
+      color:#fff;
+      cursor:pointer;
+      box-shadow:0 6px 0 rgba(0,0,0,.18), 0 12px 20px rgba(0,0,0,.12);
+    }
+
+    .start-btn {
+      grid-column:1/-1;
+      font-size:28px;
+      padding:18px 16px;
+      background:linear-gradient(#b9ff4e,#3fae12);
+      text-shadow:2px 2px 0 #24550a;
+      border:4px solid #2e6f0a;
+    }
+
+    .pause-btn { background:linear-gradient(#ffb347,#f57c00); }
+    .reset-btn { background:linear-gradient(#ff6b6b,#d93025); }
+    .mission-btn { background:linear-gradient(#3ccf7a,#0f9d58); }
+    .restart-btn { background:linear-gradient(#9b6cff,#6d35c9); }
+
+    .hint-box {
+      margin-top:14px;
+      padding:14px;
+      border-radius:16px;
+      background:#fff7df;
+      border:2px solid #ffe0a3;
+      color:#6b3a08;
+      font-weight:900;
+      line-height:1.45;
+    }
+
+    .values-grid {
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
+    }
+
+    .value-card {
+      border:2px solid #e3edf9;
+      background:#f7fbff;
+      border-radius:16px;
+      padding:12px;
+    }
+
+    .value-card b {
+      display:block;
+      color:var(--muted);
+      font-size:13px;
+      margin-bottom:4px;
+    }
+
+    .value-card span {
+      font-size:18px;
+      color:#0b3d7a;
+      font-weight:1000;
+    }
+
+    .explain-layout {
+      display:grid;
+      grid-template-columns:300px 1fr;
+      gap:16px;
+      align-items:center;
+    }
+
+    .diagram-box {
+      border:2px solid #e3edf9;
+      background:#fff7df;
+      border-radius:18px;
+      padding:12px;
+    }
+
+    #diagramCanvas {
+      width:100%;
+      height:190px;
+      display:block;
+    }
+
+    .formula-list {
+      margin:0;
+      padding:0;
+      list-style:none;
+      display:grid;
+      gap:8px;
+    }
+
+    .formula-list li {
+      background:#f7fbff;
+      border:1px solid #dbeafe;
+      padding:9px 12px;
+      border-radius:12px;
+      color:#0b55a4;
+      font-weight:900;
+      font-size:15px;
+    }
+
+    .learning-section {
+      display:grid;
+      grid-template-columns:repeat(2,1fr);
+      gap:18px;
+      margin-top:18px;
+    }
+
+    .learning-section ul,
+    .learning-section ol {
+      margin:0;
+      padding-left:22px;
+      line-height:1.65;
+      color:#39485c;
+    }
+
+    .learning-section p {
+      color:#39485c;
+      line-height:1.6;
+    }
+
+    footer {
+      text-align:center;
+      padding:10px 16px 32px;
+      color:#637083;
+      font-size:14px;
+    }
+
+    footer a {
+      color:#0b55a4;
+      font-weight:1000;
+      text-decoration:none;
+    }
+
+    footer a:hover { text-decoration:underline; }
+
+    @media(max-width:980px) {
+      .top-hud { grid-template-columns:repeat(2,1fr); }
+      .game-window { aspect-ratio:auto; min-height:440px; }
+      .workspace,
+      .learning-section,
+      .explain-layout { grid-template-columns:1fr; }
+      .values-grid { grid-template-columns:1fr; }
+      .button-row { grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body>
+<header>
+  <h1>Electric Field Charge Battle</h1>
+  <p>NEET Physics sci-fi game: guide the test charge through electric fields using attraction, repulsion and superposition</p>
+</header>
+
+<main class="app">
+  <section class="game-stage-card">
+    <div class="top-hud">
+      <div class="hud-box"><b>Score</b><span id="scoreText">0</span></div>
+      <div class="hud-box"><b>Level</b><span id="levelText">1</span></div>
+      <div class="hud-box"><b>High Score</b><span id="highScoreText">0</span></div>
+      <div class="hud-box"><b>Lives</b><span id="livesText">5</span></div>
+      <div class="hud-box"><b>Timer</b><span id="timerText">60s</span></div>
+    </div>
+
+    <div class="game-window">
+      <canvas id="gameCanvas" width="1280" height="640"></canvas>
+      <div class="game-message" id="messageBox">Ready: adjust charges and guide the test charge to the portal.</div>
+      <div class="watermark">Dr AI Academy<br>AI Powered Physics Game Lab</div>
+    </div>
+  </section>
+
+  <section class="workspace">
+    <div class="card">
+      <div class="card-head"><h2>Battle Controls</h2></div>
+      <div class="card-body">
+        <div class="control-grid">
+          <div class="control-box">
+            <div class="control-title">Source Charge q₁ <span id="q1Value">+5 μC</span></div>
+            <input id="q1" type="range" min="-10" max="10" step="1" value="5" />
+          </div>
+
+          <div class="control-box">
+            <div class="control-title">Source Charge q₂ <span id="q2Value">-5 μC</span></div>
+            <input id="q2" type="range" min="-10" max="10" step="1" value="-5" />
+          </div>
+
+          <div class="control-box">
+            <div class="control-title">Test Charge qₜ <span id="qtValue">+1 μC</span></div>
+            <input id="qt" type="range" min="-3" max="3" step="1" value="1" />
+          </div>
+
+          <div class="control-box">
+            <div class="control-title">Field Strength Scale <span id="fieldScaleValue">1.00×</span></div>
+            <input id="fieldScale" type="range" min="0.2" max="2.5" step="0.05" value="1" />
+          </div>
+
+          <div class="control-box">
+            <div class="control-title">Mission Layout <span id="layoutValue">Dipole</span></div>
+            <select id="layout">
+              <option value="dipole" selected>Dipole Battle</option>
+              <option value="likePositive">Two Positive Charges</option>
+              <option value="likeNegative">Two Negative Charges</option>
+              <option value="unequal">Unequal Charges</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="button-row">
+          <button class="start-btn" id="startBtn">START BATTLE</button>
+          <button class="pause-btn" id="pauseBtn">Pause</button>
+          <button class="reset-btn" id="resetBtn">Reset Round</button>
+          <button class="mission-btn" id="newMissionBtn">New Mission</button>
+          <button class="restart-btn" id="restartBtn">Restart Game</button>
+        </div>
+
+        <div class="hint-box" id="hintBox">Goal: Use electric force to guide the test charge into the green portal without hitting danger zones.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>Live Physics Values</h2></div>
+      <div class="card-body">
+        <div class="values-grid">
+          <div class="value-card"><b>Net Electric Field</b><span id="fieldValue">--</span></div>
+          <div class="value-card"><b>Force on Test Charge</b><span id="forceValue">--</span></div>
+          <div class="value-card"><b>Electric Potential</b><span id="potentialValue">--</span></div>
+          <div class="value-card"><b>Direction Rule</b><span id="directionValue">--</span></div>
+          <div class="value-card"><b>Field Mode</b><span id="modeValue">--</span></div>
+          <div class="value-card"><b>Mission Status</b><span id="statusValue">--</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" style="margin-top:18px;">
+    <div class="card-head"><h2>Electric Field Diagram + Formulas</h2></div>
+    <div class="card-body explain-layout">
+      <div class="diagram-box">
+        <canvas id="diagramCanvas" width="300" height="190"></canvas>
+      </div>
+      <ul class="formula-list">
+        <li>Electric field due to point charge: E = kq / r²</li>
+        <li>Force on charge in field: F = qE</li>
+        <li>Electric potential: V = kq / r</li>
+        <li>Net electric field is vector sum of fields due to all charges.</li>
+        <li>Field direction is the direction of force on a positive test charge.</li>
+        <li>Negative test charge feels force opposite to electric field direction.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="learning-section">
+    <div class="card">
+      <div class="card-head"><h2>Simple Explanation</h2></div>
+      <div class="card-body">
+        <p>Electric field is the region around a charge where another charge feels force. A positive source charge pushes positive test charge away, while a negative source charge attracts it. In this game, the test charge moves because of the net electric force from both source charges.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>NEET Traps</h2></div>
+      <div class="card-body">
+        <ul>
+          <li>Electric field direction is defined using a positive test charge.</li>
+          <li>Positive charge gives field outward; negative charge gives field inward.</li>
+          <li>Electric field is vector; electric potential is scalar.</li>
+          <li>At midpoint of equal opposite charges, electric field is not zero.</li>
+          <li>At midpoint of equal like charges, electric field can become zero.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>Observation Questions</h2></div>
+      <div class="card-body">
+        <ol>
+          <li>What happens to electric field when distance from charge doubles?</li>
+          <li>Why does a negative test charge move opposite to field direction?</li>
+          <li>Why do field lines start from positive charge?</li>
+          <li>Where can electric field become zero for two equal positive charges?</li>
+          <li>Why is electric potential scalar but electric field vector?</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>Learning Goal</h2></div>
+      <div class="card-body">
+        <ul>
+          <li>Visualize electric field direction clearly.</li>
+          <li>Understand attraction and repulsion.</li>
+          <li>Apply superposition of electric fields.</li>
+          <li>Connect force on charge with game motion.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <a href="https://courses.draiacademy.com" target="_blank" rel="noopener">Dr AI Academy</a> | AI Powered Physics Game Lab
+</footer>
+
+<script>
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
+  const diagramCanvas = document.getElementById('diagramCanvas');
+  const dctx = diagramCanvas.getContext('2d');
+
+  const q1El = document.getElementById('q1');
+  const q2El = document.getElementById('q2');
+  const qtEl = document.getElementById('qt');
+  const fieldScaleEl = document.getElementById('fieldScale');
+  const layoutEl = document.getElementById('layout');
+
+  const q1Value = document.getElementById('q1Value');
+  const q2Value = document.getElementById('q2Value');
+  const qtValue = document.getElementById('qtValue');
+  const fieldScaleValue = document.getElementById('fieldScaleValue');
+  const layoutValue = document.getElementById('layoutValue');
+
+  const scoreText = document.getElementById('scoreText');
+  const levelText = document.getElementById('levelText');
+  const highScoreText = document.getElementById('highScoreText');
+  const livesText = document.getElementById('livesText');
+  const timerText = document.getElementById('timerText');
+  const messageBox = document.getElementById('messageBox');
+  const hintBox = document.getElementById('hintBox');
+
+  const fieldValue = document.getElementById('fieldValue');
+  const forceValue = document.getElementById('forceValue');
+  const potentialValue = document.getElementById('potentialValue');
+  const directionValue = document.getElementById('directionValue');
+  const modeValue = document.getElementById('modeValue');
+  const statusValue = document.getElementById('statusValue');
+
+  const startBtn = document.getElementById('startBtn');
+  const pauseBtn = document.getElementById('pauseBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const newMissionBtn = document.getElementById('newMissionBtn');
+  const restartBtn = document.getElementById('restartBtn');
+
+  let score = 0;
+  let level = 1;
+  let lives = 5;
+  let timer = 60;
+  let paused = false;
+  let running = false;
+  let lastTime = 0;
+  let message = 'Ready: adjust charges and guide the test charge.';
+  let highScore = Number(localStorage.getItem('drAiElectricFieldBattleHighScore') || 0);
+  let particles = [];
+  let chargeA, chargeB, testCharge, portal, dangerZones;
+
+  const kVisual = 950;
+  const world = { w:1280, h:640 };
+
+  const starField = Array.from({ length: 100 }, () => ({
+    x: Math.random() * 1280,
+    y: Math.random() * 640,
+    r: Math.random() * 1.7 + 0.4,
+    tw: Math.random() * 2 + 0.5
+  }));
+
+  function random(min, max) { return Math.random() * (max - min) + min; }
+  function format(num, unit) { return Number.isFinite(num) ? num.toFixed(2) + ' ' + unit : '--'; }
+  function signText(q) { return q > 0 ? '+' + q : String(q); }
+
+  function setupLayout() {
+    const layout = layoutEl.value;
+    if (layout === 'dipole') {
+      q1El.value = 5;
+      q2El.value = -5;
+    } else if (layout === 'likePositive') {
+      q1El.value = 5;
+      q2El.value = 5;
+    } else if (layout === 'likeNegative') {
+      q1El.value = -5;
+      q2El.value = -5;
+    } else if (layout === 'unequal') {
+      q1El.value = 8;
+      q2El.value = -3;
+    }
+    resetRound(false);
+  }
+
+  function resetPositions() {
+    chargeA = { x: 360, y: 315, q: Number(q1El.value) };
+    chargeB = { x: 860, y: 315, q: Number(q2El.value) };
+    testCharge = { x: 130, y: 315, vx: 0, vy: 0, q: Number(qtEl.value) || 1, r: 17 };
+    portal = { x: 1130, y: 315, r: 45 };
+    dangerZones = [
+      { x: 625, y: 185, r: 38 },
+      { x: 625, y: 445, r: 38 }
+    ];
+  }
+
+  function getInput() {
+    const q1 = Number(q1El.value);
+    const q2 = Number(q2El.value);
+    const qt = Number(qtEl.value) || 1;
+    const fieldScale = Number(fieldScaleEl.value);
+    return { q1, q2, qt, fieldScale, layout: layoutEl.value };
+  }
+
+  function electricAt(x, y) {
+    const input = getInput();
+    chargeA.q = input.q1;
+    chargeB.q = input.q2;
+    const charges = [chargeA, chargeB];
+    let Ex = 0, Ey = 0, V = 0;
+    charges.forEach(ch => {
+      const dx = x - ch.x;
+      const dy = y - ch.y;
+      const r2 = dx*dx + dy*dy;
+      const r = Math.sqrt(r2) + 18;
+      const safeR2 = r*r;
+      const E = kVisual * ch.q / safeR2;
+      Ex += E * dx / r;
+      Ey += E * dy / r;
+      V += 22 * ch.q / r;
+    });
+    return { Ex, Ey, E: Math.hypot(Ex, Ey), V };
+  }
+
+  function updateUI() {
+    const input = getInput();
+    chargeA.q = input.q1;
+    chargeB.q = input.q2;
+    testCharge.q = input.qt;
+
+    q1Value.textContent = signText(input.q1) + ' μC';
+    q2Value.textContent = signText(input.q2) + ' μC';
+    qtValue.textContent = signText(input.qt) + ' μC';
+    fieldScaleValue.textContent = input.fieldScale.toFixed(2) + '×';
+    layoutValue.textContent = layoutEl.options[layoutEl.selectedIndex].text;
+
+    scoreText.textContent = Math.floor(score);
+    levelText.textContent = level;
+    highScoreText.textContent = Math.floor(highScore);
+    livesText.textContent = lives;
+    timerText.textContent = Math.ceil(timer) + 's';
+    messageBox.textContent = message;
+
+    const field = electricAt(testCharge.x, testCharge.y);
+    const force = Math.abs(input.qt) * field.E;
+    fieldValue.textContent = format(field.E, 'arb');
+    forceValue.textContent = format(force, 'arb');
+    potentialValue.textContent = format(field.V, 'arb');
+    directionValue.textContent = input.qt >= 0 ? 'Along E' : 'Opposite E';
+    modeValue.textContent = layoutEl.options[layoutEl.selectedIndex].text;
+
+    let status = 'In field arena';
+    const dPortal = Math.hypot(testCharge.x - portal.x, testCharge.y - portal.y);
+    if (dPortal < portal.r) status = 'Near portal';
+    dangerZones.forEach(z => {
+      if (Math.hypot(testCharge.x - z.x, testCharge.y - z.y) < z.r) status = 'Danger zone';
+    });
+    statusValue.textContent = status;
+
+    if (input.qt < 0) {
+      hintBox.textContent = 'Negative test charge moves opposite to electric field direction. Watch the force direction carefully.';
+    } else if (input.q1 * input.q2 < 0) {
+      hintBox.textContent = 'Dipole field active: field lines go from positive charge to negative charge. Use attraction/repulsion to reach portal.';
+    } else {
+      hintBox.textContent = 'Like-charge field active: midpoint behavior and cancellation/repulsion patterns are important.';
+    }
+  }
+
+  function drawBackground(time) {
+    const grad = ctx.createRadialGradient(640, 315, 40, 640, 315, 820);
+    grad.addColorStop(0, '#133e91');
+    grad.addColorStop(0.45, '#071a45');
+    grad.addColorStop(1, '#020716');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.save();
+    starField.forEach(s => {
+      ctx.globalAlpha = 0.35 + 0.45 * Math.sin(time * 0.002 * s.tw + s.x);
+      ctx.fillStyle = '#dff7ff';
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    ctx.restore();
+
+    ctx.strokeStyle = 'rgba(83,212,255,.12)';
+    ctx.lineWidth = 1;
+    for (let x = 80; x < 1240; x += 80) {
+      ctx.beginPath();
+      ctx.moveTo(x, 90);
+      ctx.lineTo(x, 550);
+      ctx.stroke();
+    }
+    for (let y = 110; y < 560; y += 70) {
+      ctx.beginPath();
+      ctx.moveTo(70, y);
+      ctx.lineTo(1210, y);
+      ctx.stroke();
+    }
+  }
+
+  function drawArena() {
+    ctx.save();
+    ctx.fillStyle = 'rgba(83,212,255,.08)';
+    ctx.strokeStyle = 'rgba(83,212,255,.75)';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.roundRect(75, 92, 1130, 460, 26);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = '#fff2cc';
+    ctx.font = 'bold 18px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('ELECTRIC FIELD BATTLE ARENA', 640, 72);
+    ctx.restore();
+  }
+
+  function drawFieldVectors() {
+    ctx.save();
+    for (let x = 150; x <= 1110; x += 80) {
+      for (let y = 140; y <= 500; y += 60) {
+        const field = electricAt(x, y);
+        const mag = Math.min(22, field.E * 260);
+        if (mag < 2) continue;
+        const a = Math.atan2(field.Ey, field.Ex);
+        ctx.globalAlpha = 0.55;
+        drawSmallArrow(x, y, x + mag * Math.cos(a), y + mag * Math.sin(a), '#dff7ff');
+      }
+    }
+    ctx.restore();
+  }
+
+  function drawSmallArrow(x1, y1, x2, y2, color) {
+    const a = Math.atan2(y2 - y1, x2 - x1);
+    const h = 5;
+    ctx.strokeStyle = color;
+    ctx.fillStyle = color;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x2, y2);
+    ctx.lineTo(x2 - h * Math.cos(a - Math.PI / 6), y2 - h * Math.sin(a - Math.PI / 6));
+    ctx.lineTo(x2 - h * Math.cos(a + Math.PI / 6), y2 - h * Math.sin(a + Math.PI / 6));
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  function drawCharge(ch, label) {
+    const color = ch.q >= 0 ? '#ff5c5c' : '#53d4ff';
+    const glow = ch.q >= 0 ? 'rgba(255,92,92,.34)' : 'rgba(83,212,255,.34)';
+    ctx.save();
+    const grad = ctx.createRadialGradient(ch.x, ch.y, 8, ch.x, ch.y, 58);
+    grad.addColorStop(0, 'rgba(255,255,255,.95)');
+    grad.addColorStop(0.28, glow);
+    grad.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(ch.x, ch.y, 58, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = color;
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.arc(ch.x, ch.y, 34, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 26px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(ch.q >= 0 ? '+' : '−', ch.x, ch.y + 10);
+    ctx.font = 'bold 14px Arial';
+    ctx.fillText(label + ' = ' + signText(ch.q) + ' μC', ch.x, ch.y + 58);
+    ctx.restore();
+  }
+
+  function drawPortal() {
+    ctx.save();
+    const pulse = 0.7 + 0.3 * Math.sin(Date.now() / 180);
+    const grad = ctx.createRadialGradient(portal.x, portal.y, 8, portal.x, portal.y, portal.r + 30);
+    grad.addColorStop(0, 'rgba(255,255,255,.95)');
+    grad.addColorStop(0.35, `rgba(80,255,150,${0.6 * pulse})`);
+    grad.addColorStop(1, 'rgba(80,255,150,0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(portal.x, portal.y, portal.r + 32, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = '#53ff9e';
+    ctx.lineWidth = 7;
+    ctx.beginPath();
+    ctx.arc(portal.x, portal.y, portal.r, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.fillStyle = '#dfffe8';
+    ctx.font = 'bold 14px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('PORTAL', portal.x, portal.y + 5);
+    ctx.restore();
+  }
+
+  function drawDangerZones() {
+    dangerZones.forEach(z => {
+      ctx.save();
+      const grad = ctx.createRadialGradient(z.x, z.y, 4, z.x, z.y, z.r + 20);
+      grad.addColorStop(0, 'rgba(255,255,255,.75)');
+      grad.addColorStop(0.35, 'rgba(255,80,80,.6)');
+      grad.addColorStop(1, 'rgba(255,80,80,0)');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(z.x, z.y, z.r + 18, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#ff5c5c';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.arc(z.x, z.y, z.r, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 12px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('DANGER', z.x, z.y + 4);
+      ctx.restore();
+    });
+  }
+
+  function drawTestCharge() {
+    const color = testCharge.q >= 0 ? '#ffd24c' : '#b086ff';
+    ctx.save();
+    ctx.fillStyle = 'rgba(0,0,0,.24)';
+    ctx.beginPath();
+    ctx.ellipse(testCharge.x, testCharge.y + 24, 32, 10, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = color;
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.arc(testCharge.x, testCharge.y, testCharge.r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = '#102033';
+    ctx.font = 'bold 18px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(testCharge.q >= 0 ? '+' : '−', testCharge.x, testCharge.y + 7);
+
+    const field = electricAt(testCharge.x, testCharge.y);
+    const dir = testCharge.q >= 0 ? 1 : -1;
+    const forceAngle = Math.atan2(field.Ey * dir, field.Ex * dir);
+    drawArrow(testCharge.x, testCharge.y, testCharge.x + 75 * Math.cos(forceAngle), testCharge.y + 75 * Math.sin(forceAngle), '#ffdf3f', 'F');
+    ctx.restore();
+  }
+
+  function drawArrow(x1, y1, x2, y2, color, label) {
+    const a = Math.atan2(y2 - y1, x2 - x1);
+    const h = 11;
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.fillStyle = color;
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x2, y2);
+    ctx.lineTo(x2 - h * Math.cos(a - Math.PI / 6), y2 - h * Math.sin(a - Math.PI / 6));
+    ctx.lineTo(x2 - h * Math.cos(a + Math.PI / 6), y2 - h * Math.sin(a + Math.PI / 6));
+    ctx.closePath();
+    ctx.fill();
+    ctx.font = 'bold 14px Arial';
+    ctx.fillText(label, x2 + 8, y2 - 8);
+    ctx.restore();
+  }
+
+  function drawParticles() {
+    ctx.save();
+    particles.forEach(p => {
+      ctx.globalAlpha = Math.max(0, p.life);
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 7 * p.life, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    ctx.restore();
+  }
+
+  function explode(x, y, color) {
+    for (let i = 0; i < 34; i++) {
+      particles.push({
+        x,
+        y,
+        vx: random(-230, 230),
+        vy: random(-230, 230),
+        life: 1,
+        color: color || (i % 2 ? '#ffdf3f' : '#53d4ff')
+      });
+    }
+  }
+
+  function updateTestCharge(dt) {
+    if (!running || paused || lives <= 0) return;
+    timer = Math.max(0, timer - dt);
+    const input = getInput();
+    const field = electricAt(testCharge.x, testCharge.y);
+    const sign = input.qt >= 0 ? 1 : -1;
+    const ax = field.Ex * input.fieldScale * sign * 5.5;
+    const ay = field.Ey * input.fieldScale * sign * 5.5;
+
+    testCharge.vx += ax * dt;
+    testCharge.vy += ay * dt;
+    testCharge.vx *= 0.992;
+    testCharge.vy *= 0.992;
+    testCharge.x += testCharge.vx * dt;
+    testCharge.y += testCharge.vy * dt;
+
+    if (testCharge.x < 95) { testCharge.x = 95; testCharge.vx *= -0.4; }
+    if (testCharge.x > 1185) { testCharge.x = 1185; testCharge.vx *= -0.4; }
+    if (testCharge.y < 115) { testCharge.y = 115; testCharge.vy *= -0.4; }
+    if (testCharge.y > 525) { testCharge.y = 525; testCharge.vy *= -0.4; }
+
+    if (Math.hypot(testCharge.x - portal.x, testCharge.y - portal.y) < portal.r) {
+      score += 100;
+      level = Math.floor(score / 300) + 1;
+      highScore = Math.max(highScore, score);
+      localStorage.setItem('drAiElectricFieldBattleHighScore', String(highScore));
+      explode(portal.x, portal.y, '#53ff9e');
+      message = 'Portal reached! +100';
+      resetRound(false);
+      return;
+    }
+
+    for (const z of dangerZones) {
+      if (Math.hypot(testCharge.x - z.x, testCharge.y - z.y) < z.r) {
+        lives -= 1;
+        explode(testCharge.x, testCharge.y, '#ff653b');
+        message = lives > 0 ? 'Danger hit! Try better charge setup.' : 'Game Over';
+        resetRound(false);
+        return;
+      }
+    }
+
+    for (const ch of [chargeA, chargeB]) {
+      if (Math.hypot(testCharge.x - ch.x, testCharge.y - ch.y) < 38) {
+        lives -= 1;
+        explode(testCharge.x, testCharge.y, '#ff653b');
+        message = lives > 0 ? 'Source charge collision! Reset path.' : 'Game Over';
+        resetRound(false);
+        return;
+      }
+    }
+
+    if (timer <= 0 && lives > 0) {
+      lives -= 1;
+      running = false;
+      message = lives > 0 ? 'Time up! Try stronger field control.' : 'Game Over';
+    }
+  }
+
+  function updateParticles(dt) {
+    particles.forEach(p => {
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+      p.life -= dt * 1.25;
+    });
+    particles = particles.filter(p => p.life > 0);
+  }
+
+  function drawDiagram() {
+    dctx.clearRect(0, 0, diagramCanvas.width, diagramCanvas.height);
+    dctx.fillStyle = '#fff7df';
+    dctx.fillRect(0, 0, diagramCanvas.width, diagramCanvas.height);
+
+    dctx.fillStyle = '#ff5c5c';
+    dctx.beginPath();
+    dctx.arc(78, 95, 25, 0, Math.PI * 2);
+    dctx.fill();
+    dctx.fillStyle = '#fff';
+    dctx.font = 'bold 24px Arial';
+    dctx.textAlign = 'center';
+    dctx.fillText('+', 78, 104);
+
+    dctx.fillStyle = '#53d4ff';
+    dctx.beginPath();
+    dctx.arc(222, 95, 25, 0, Math.PI * 2);
+    dctx.fill();
+    dctx.fillStyle = '#fff';
+    dctx.fillText('−', 222, 104);
+
+    for (let i = -2; i <= 2; i++) {
+      dArrow(105, 95 + i * 18, 195, 95 + i * 18, '#0b55a4', i === 0 ? 'E' : '');
+    }
+
+    dctx.fillStyle = '#102033';
+    dctx.font = 'bold 13px Arial';
+    dctx.fillText('Field lines go from + to −', 150, 28);
+    dctx.fillText('Force on + test charge is along E', 150, 168);
+  }
+
+  function dArrow(x1, y1, x2, y2, color, label) {
+    const a = Math.atan2(y2 - y1, x2 - x1);
+    const h = 8;
+    dctx.strokeStyle = color;
+    dctx.fillStyle = color;
+    dctx.lineWidth = 3;
+    dctx.beginPath();
+    dctx.moveTo(x1, y1);
+    dctx.lineTo(x2, y2);
+    dctx.stroke();
+    dctx.beginPath();
+    dctx.moveTo(x2, y2);
+    dctx.lineTo(x2 - h * Math.cos(a - Math.PI / 6), y2 - h * Math.sin(a - Math.PI / 6));
+    dctx.lineTo(x2 - h * Math.cos(a + Math.PI / 6), y2 - h * Math.sin(a + Math.PI / 6));
+    dctx.closePath();
+    dctx.fill();
+    if (label) {
+      dctx.font = 'bold 12px Arial';
+      dctx.fillText(label, x2 + 5, y2 - 5);
+    }
+  }
+
+  function startBattle() {
+    if (lives <= 0) return;
+    running = true;
+    paused = false;
+    message = 'Battle started! Guide the test charge.';
+    pauseBtn.textContent = 'Pause';
+  }
+
+  function resetRound(keepMessage = true) {
+    running = false;
+    paused = false;
+    resetPositions();
+    timer = 60;
+    if (keepMessage) message = 'Round reset.';
+    pauseBtn.textContent = 'Pause';
+  }
+
+  function newMission() {
+    const layouts = ['dipole', 'likePositive', 'likeNegative', 'unequal'];
+    layoutEl.value = layouts[Math.floor(random(0, layouts.length))];
+    setupLayout();
+    fieldScaleEl.value = random(0.6, 1.6).toFixed(2);
+    qtEl.value = Math.random() > 0.5 ? 1 : -1;
+    message = 'New electric field mission generated.';
+  }
+
+  function restartGame() {
+    score = 0;
+    level = 1;
+    lives = 5;
+    timer = 60;
+    running = false;
+    paused = false;
+    particles = [];
+    resetPositions();
+    message = 'New game started.';
+    pauseBtn.textContent = 'Pause';
+  }
+
+  function gameLoop(timestamp) {
+    if (!lastTime) lastTime = timestamp;
+    const dt = Math.min(0.04, (timestamp - lastTime) / 1000);
+    lastTime = timestamp;
+
+    if (!paused) {
+      updateTestCharge(dt);
+      updateParticles(dt);
+    }
+
+    updateUI();
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawBackground(timestamp);
+    drawArena();
+    drawFieldVectors();
+    drawDangerZones();
+    drawPortal();
+    drawCharge(chargeA, 'q₁');
+    drawCharge(chargeB, 'q₂');
+    drawTestCharge();
+    drawParticles();
+    drawDiagram();
+
+    requestAnimationFrame(gameLoop);
+  }
+
+  [q1El, q2El, qtEl, fieldScaleEl].forEach(el => {
+    el.addEventListener('input', updateUI);
+  });
+
+  layoutEl.addEventListener('change', setupLayout);
+
+  startBtn.addEventListener('click', startBattle);
+  pauseBtn.addEventListener('click', () => {
+    paused = !paused;
+    pauseBtn.textContent = paused ? 'Resume' : 'Pause';
+    message = paused ? 'Paused' : 'Ready';
+  });
+  resetBtn.addEventListener('click', () => resetRound(true));
+  newMissionBtn.addEventListener('click', newMission);
+  restartBtn.addEventListener('click', restartGame);
+
+  resetPositions();
+  updateUI();
+  drawDiagram();
+  requestAnimationFrame(gameLoop);
+</script>
+</body>
+</html>

@@ -1,0 +1,1077 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ohm's Law Circuit Builder Game | Dr AI Academy</title>
+  <style>
+    :root {
+      --panel:#ffffff;
+      --ink:#102033;
+      --muted:#637083;
+      --blue:#1769ff;
+      --green:#0f9d58;
+      --orange:#f57c00;
+      --red:#d93025;
+      --purple:#7b1fa2;
+      --line:#dbe6f6;
+      --soft:#f7fbff;
+      --shadow:0 14px 30px rgba(16,32,51,.14);
+    }
+
+    * { box-sizing:border-box; }
+
+    body {
+      margin:0;
+      font-family:"Trebuchet MS", Arial, sans-serif;
+      background:linear-gradient(180deg,#edf7ff,#ffffff);
+      color:var(--ink);
+    }
+
+    header {
+      text-align:center;
+      padding:22px 16px;
+      color:#fff;
+      background:linear-gradient(135deg,#061d49,#0d6efd);
+    }
+
+    header h1 {
+      margin:0 0 8px;
+      font-size:clamp(26px,4vw,44px);
+      font-weight:1000;
+    }
+
+    header p {
+      margin:0;
+      opacity:.95;
+      font-size:16px;
+    }
+
+    .app {
+      max-width:1280px;
+      margin:22px auto 34px;
+      padding:0 16px;
+    }
+
+    .game-stage-card {
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:24px;
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+
+    .top-hud {
+      display:grid;
+      grid-template-columns:repeat(5,1fr);
+      gap:10px;
+      padding:14px;
+      background:linear-gradient(180deg,#ffffff,#f4f9ff);
+      border-bottom:1px solid var(--line);
+    }
+
+    .hud-box {
+      border:2px solid #dbeafe;
+      border-radius:16px;
+      background:linear-gradient(180deg,#ffffff,#eef7ff);
+      padding:10px 12px;
+      text-align:center;
+    }
+
+    .hud-box b {
+      display:block;
+      color:var(--muted);
+      font-size:13px;
+      margin-bottom:4px;
+    }
+
+    .hud-box span {
+      font-size:24px;
+      color:#0b3d7a;
+      font-weight:1000;
+    }
+
+    .game-window {
+      position:relative;
+      width:100%;
+      aspect-ratio:16/8.2;
+      min-height:520px;
+      background:#06122b;
+    }
+
+    canvas#gameCanvas {
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+      display:block;
+      z-index:1;
+    }
+
+    .game-message {
+      position:absolute;
+      left:50%;
+      bottom:18px;
+      transform:translateX(-50%);
+      min-width:340px;
+      max-width:82%;
+      text-align:center;
+      background:rgba(10,18,45,.92);
+      border:3px solid rgba(255,255,255,.35);
+      border-radius:999px;
+      color:#fff2cc;
+      padding:10px 22px;
+      font-weight:1000;
+      font-size:20px;
+      z-index:2;
+      box-shadow:0 8px 20px rgba(0,0,0,.18);
+      pointer-events:none;
+    }
+
+    .watermark {
+      position:absolute;
+      right:18px;
+      bottom:18px;
+      color:rgba(255,255,255,.78);
+      text-align:right;
+      font-weight:900;
+      text-shadow:1px 1px 3px rgba(0,0,0,.35);
+      z-index:2;
+      pointer-events:none;
+    }
+
+    .workspace {
+      display:grid;
+      grid-template-columns:1.1fr .9fr;
+      gap:18px;
+      margin-top:18px;
+    }
+
+    .card {
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:22px;
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+
+    .card-head {
+      padding:16px 18px;
+      background:linear-gradient(180deg,#ffffff,#f4f9ff);
+      border-bottom:1px solid var(--line);
+    }
+
+    .card-head h2 {
+      margin:0;
+      font-size:22px;
+      color:#102033;
+    }
+
+    .card-body { padding:18px; }
+
+    .control-grid {
+      display:grid;
+      grid-template-columns:1fr;
+      gap:14px;
+    }
+
+    .control-box {
+      border:2px solid #e3edf9;
+      background:linear-gradient(180deg,#ffffff,#f7fbff);
+      border-radius:18px;
+      padding:14px;
+    }
+
+    .control-title {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      margin-bottom:10px;
+      font-weight:1000;
+      color:#243244;
+      font-size:18px;
+    }
+
+    .control-title span {
+      min-width:112px;
+      text-align:center;
+      color:#0b55a4;
+      background:#eaf4ff;
+      border:2px solid #cfe4ff;
+      padding:6px 10px;
+      border-radius:12px;
+      font-weight:1000;
+    }
+
+    input[type="range"] {
+      width:100%;
+      accent-color:var(--blue);
+      cursor:pointer;
+    }
+
+    select {
+      width:100%;
+      padding:12px;
+      border-radius:14px;
+      border:2px solid #cfe4ff;
+      background:#fff;
+      color:#102033;
+      font-weight:900;
+      font-size:16px;
+    }
+
+    .button-row {
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
+      margin-top:16px;
+    }
+
+    button {
+      border:0;
+      border-radius:16px;
+      padding:14px 16px;
+      font-size:17px;
+      font-weight:1000;
+      color:#fff;
+      cursor:pointer;
+      box-shadow:0 6px 0 rgba(0,0,0,.18), 0 12px 20px rgba(0,0,0,.12);
+    }
+
+    .start-btn {
+      grid-column:1/-1;
+      font-size:28px;
+      padding:18px 16px;
+      background:linear-gradient(#b9ff4e,#3fae12);
+      text-shadow:2px 2px 0 #24550a;
+      border:4px solid #2e6f0a;
+    }
+
+    .pause-btn { background:linear-gradient(#ffb347,#f57c00); }
+    .reset-btn { background:linear-gradient(#ff6b6b,#d93025); }
+    .mission-btn { background:linear-gradient(#3ccf7a,#0f9d58); }
+    .restart-btn { background:linear-gradient(#9b6cff,#6d35c9); }
+
+    .hint-box {
+      margin-top:14px;
+      padding:14px;
+      border-radius:16px;
+      background:#fff7df;
+      border:2px solid #ffe0a3;
+      color:#6b3a08;
+      font-weight:900;
+      line-height:1.45;
+    }
+
+    .values-grid {
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
+    }
+
+    .value-card {
+      border:2px solid #e3edf9;
+      background:#f7fbff;
+      border-radius:16px;
+      padding:12px;
+    }
+
+    .value-card b {
+      display:block;
+      color:var(--muted);
+      font-size:13px;
+      margin-bottom:4px;
+    }
+
+    .value-card span {
+      font-size:18px;
+      color:#0b3d7a;
+      font-weight:1000;
+    }
+
+    .explain-layout {
+      display:grid;
+      grid-template-columns:300px 1fr;
+      gap:16px;
+      align-items:center;
+    }
+
+    .diagram-box {
+      border:2px solid #e3edf9;
+      background:#fff7df;
+      border-radius:18px;
+      padding:12px;
+    }
+
+    #diagramCanvas {
+      width:100%;
+      height:190px;
+      display:block;
+    }
+
+    .formula-list {
+      margin:0;
+      padding:0;
+      list-style:none;
+      display:grid;
+      gap:8px;
+    }
+
+    .formula-list li {
+      background:#f7fbff;
+      border:1px solid #dbeafe;
+      padding:9px 12px;
+      border-radius:12px;
+      color:#0b55a4;
+      font-weight:900;
+      font-size:15px;
+    }
+
+    .learning-section {
+      display:grid;
+      grid-template-columns:repeat(2,1fr);
+      gap:18px;
+      margin-top:18px;
+    }
+
+    .learning-section ul,
+    .learning-section ol {
+      margin:0;
+      padding-left:22px;
+      line-height:1.65;
+      color:#39485c;
+    }
+
+    .learning-section p {
+      color:#39485c;
+      line-height:1.6;
+    }
+
+    footer {
+      text-align:center;
+      padding:10px 16px 32px;
+      color:#637083;
+      font-size:14px;
+    }
+
+    footer a {
+      color:#0b55a4;
+      font-weight:1000;
+      text-decoration:none;
+    }
+
+    footer a:hover { text-decoration:underline; }
+
+    @media(max-width:980px) {
+      .top-hud { grid-template-columns:repeat(2,1fr); }
+      .game-window { aspect-ratio:auto; min-height:440px; }
+      .workspace,
+      .learning-section,
+      .explain-layout { grid-template-columns:1fr; }
+      .values-grid { grid-template-columns:1fr; }
+      .button-row { grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body>
+<header>
+  <h1>Ohm's Law Circuit Builder</h1>
+  <p>NEET Physics sci-fi puzzle game: build the right circuit to power the robot city using voltage, resistance and current</p>
+</header>
+
+<main class="app">
+  <section class="game-stage-card">
+    <div class="top-hud">
+      <div class="hud-box"><b>Score</b><span id="scoreText">0</span></div>
+      <div class="hud-box"><b>Level</b><span id="levelText">1</span></div>
+      <div class="hud-box"><b>High Score</b><span id="highScoreText">0</span></div>
+      <div class="hud-box"><b>Lives</b><span id="livesText">5</span></div>
+      <div class="hud-box"><b>Timer</b><span id="timerText">60s</span></div>
+    </div>
+
+    <div class="game-window">
+      <canvas id="gameCanvas" width="1280" height="640"></canvas>
+      <div class="game-message" id="messageBox">Ready: set voltage and resistance to match target current.</div>
+      <div class="watermark">Dr AI Academy<br>AI Powered Physics Game Lab</div>
+    </div>
+  </section>
+
+  <section class="workspace">
+    <div class="card">
+      <div class="card-head"><h2>Circuit Builder Controls</h2></div>
+      <div class="card-body">
+        <div class="control-grid">
+          <div class="control-box">
+            <div class="control-title">Battery Voltage V <span id="voltageValue">12 V</span></div>
+            <input id="voltage" type="range" min="1" max="30" step="1" value="12" />
+          </div>
+
+          <div class="control-box">
+            <div class="control-title">Resistance R <span id="resistanceValue">6 Ω</span></div>
+            <input id="resistance" type="range" min="1" max="50" step="1" value="6" />
+          </div>
+
+          <div class="control-box">
+            <div class="control-title">Number of Resistors <span id="countValue">2</span></div>
+            <input id="count" type="range" min="1" max="4" step="1" value="2" />
+          </div>
+
+          <div class="control-box">
+            <div class="control-title">Circuit Type <span id="typeValue">Series</span></div>
+            <select id="circuitType">
+              <option value="single">Single Resistor</option>
+              <option value="series" selected>Series Combination</option>
+              <option value="parallel">Parallel Combination</option>
+            </select>
+          </div>
+
+          <div class="control-box">
+            <div class="control-title">Target Current <span id="targetValue">2.00 A</span></div>
+            <input id="targetCurrent" type="range" min="0.2" max="10" step="0.1" value="2" />
+          </div>
+        </div>
+
+        <div class="button-row">
+          <button class="start-btn" id="startBtn">POWER CITY</button>
+          <button class="pause-btn" id="pauseBtn">Pause</button>
+          <button class="reset-btn" id="resetBtn">Reset Round</button>
+          <button class="mission-btn" id="newMissionBtn">New Mission</button>
+          <button class="restart-btn" id="restartBtn">Restart Game</button>
+        </div>
+
+        <div class="hint-box" id="hintBox">Goal: Match actual current with target current. Use series to reduce current, parallel to increase current.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>Live Physics Values</h2></div>
+      <div class="card-body">
+        <div class="values-grid">
+          <div class="value-card"><b>Equivalent Resistance</b><span id="reqValue">--</span></div>
+          <div class="value-card"><b>Actual Current</b><span id="currentValue">--</span></div>
+          <div class="value-card"><b>Target Current</b><span id="targetReadValue">--</span></div>
+          <div class="value-card"><b>Power</b><span id="powerValue">--</span></div>
+          <div class="value-card"><b>Voltage Rule</b><span id="voltageRuleValue">--</span></div>
+          <div class="value-card"><b>Current Rule</b><span id="currentRuleValue">--</span></div>
+          <div class="value-card"><b>Error</b><span id="errorValue">--</span></div>
+          <div class="value-card"><b>Mission Status</b><span id="statusValue">--</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" style="margin-top:18px;">
+    <div class="card-head"><h2>Circuit Diagram + Formulas</h2></div>
+    <div class="card-body explain-layout">
+      <div class="diagram-box">
+        <canvas id="diagramCanvas" width="300" height="190"></canvas>
+      </div>
+      <ul class="formula-list">
+        <li>Ohm's Law: V = IR</li>
+        <li>Current: I = V / R</li>
+        <li>Power: P = VI = I²R = V²/R</li>
+        <li>Series resistance: Rs = R₁ + R₂ + R₃ + ...</li>
+        <li>Parallel resistance: 1/Rp = 1/R₁ + 1/R₂ + 1/R₃ + ...</li>
+        <li>In series, current is same. In parallel, voltage is same.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="learning-section">
+    <div class="card">
+      <div class="card-head"><h2>Simple Explanation</h2></div>
+      <div class="card-body">
+        <p>Ohm's Law connects voltage, current and resistance. Voltage pushes charges, resistance opposes current, and current is the flow of charge. In this game, your mission is to build a circuit that gives the target current needed to power the robot city safely.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>NEET Traps</h2></div>
+      <div class="card-body">
+        <ul>
+          <li>Ammeter is connected in series, voltmeter is connected in parallel.</li>
+          <li>In series combination, current remains same but voltage divides.</li>
+          <li>In parallel combination, voltage remains same but current divides.</li>
+          <li>Equivalent resistance in series is greater than each resistor.</li>
+          <li>Equivalent resistance in parallel is less than the smallest resistor.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>Observation Questions</h2></div>
+      <div class="card-body">
+        <ol>
+          <li>What happens to current when voltage is doubled?</li>
+          <li>What happens to current when resistance is doubled?</li>
+          <li>Which quantity is same in series circuit?</li>
+          <li>Which quantity is same in parallel circuit?</li>
+          <li>Why is parallel equivalent resistance smaller?</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>Learning Goal</h2></div>
+      <div class="card-body">
+        <ul>
+          <li>Build intuition for V = IR.</li>
+          <li>Compare series and parallel circuits.</li>
+          <li>Understand power and current control.</li>
+          <li>Connect circuit formulas with mission gameplay.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <a href="https://courses.draiacademy.com" target="_blank" rel="noopener">Dr AI Academy</a> | AI Powered Physics Game Lab
+</footer>
+
+<script>
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
+  const diagramCanvas = document.getElementById('diagramCanvas');
+  const dctx = diagramCanvas.getContext('2d');
+
+  const voltageEl = document.getElementById('voltage');
+  const resistanceEl = document.getElementById('resistance');
+  const countEl = document.getElementById('count');
+  const circuitTypeEl = document.getElementById('circuitType');
+  const targetCurrentEl = document.getElementById('targetCurrent');
+
+  const voltageValue = document.getElementById('voltageValue');
+  const resistanceValue = document.getElementById('resistanceValue');
+  const countValue = document.getElementById('countValue');
+  const typeValue = document.getElementById('typeValue');
+  const targetValue = document.getElementById('targetValue');
+
+  const scoreText = document.getElementById('scoreText');
+  const levelText = document.getElementById('levelText');
+  const highScoreText = document.getElementById('highScoreText');
+  const livesText = document.getElementById('livesText');
+  const timerText = document.getElementById('timerText');
+  const messageBox = document.getElementById('messageBox');
+  const hintBox = document.getElementById('hintBox');
+
+  const reqValue = document.getElementById('reqValue');
+  const currentValue = document.getElementById('currentValue');
+  const targetReadValue = document.getElementById('targetReadValue');
+  const powerValue = document.getElementById('powerValue');
+  const voltageRuleValue = document.getElementById('voltageRuleValue');
+  const currentRuleValue = document.getElementById('currentRuleValue');
+  const errorValue = document.getElementById('errorValue');
+  const statusValue = document.getElementById('statusValue');
+
+  const startBtn = document.getElementById('startBtn');
+  const pauseBtn = document.getElementById('pauseBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const newMissionBtn = document.getElementById('newMissionBtn');
+  const restartBtn = document.getElementById('restartBtn');
+
+  let score = 0;
+  let level = 1;
+  let lives = 5;
+  let timer = 60;
+  let paused = false;
+  let running = false;
+  let lastTime = 0;
+  let message = 'Ready: set voltage and resistance to match target current.';
+  let highScore = Number(localStorage.getItem('drAiOhmsCircuitBuilderHighScore') || 0);
+  let electronPhase = 0;
+  let particles = [];
+  let judgedThisRun = false;
+
+  const starField = Array.from({ length: 90 }, () => ({
+    x: Math.random() * 1280,
+    y: Math.random() * 640,
+    r: Math.random() * 1.7 + 0.4,
+    tw: Math.random() * 2 + 0.5
+  }));
+
+  function random(min, max) { return Math.random() * (max - min) + min; }
+  function format(num, unit) { return Number.isFinite(num) ? num.toFixed(2) + ' ' + unit : '--'; }
+
+  function getCircuit() {
+    const V = Number(voltageEl.value);
+    const R = Number(resistanceEl.value);
+    const n = Number(countEl.value);
+    const type = circuitTypeEl.value;
+    const target = Number(targetCurrentEl.value);
+
+    let req = R;
+    let voltageRule = 'Across resistor';
+    let currentRule = 'Single path';
+
+    if (type === 'series') {
+      req = R * n;
+      voltageRule = 'Voltage divides';
+      currentRule = 'Same current';
+    } else if (type === 'parallel') {
+      req = R / n;
+      voltageRule = 'Same voltage';
+      currentRule = 'Current divides';
+    }
+
+    const I = V / req;
+    const P = V * I;
+    const error = Math.abs(I - target);
+    const tolerance = Math.max(0.12, target * 0.08);
+    let status = error <= tolerance ? 'Target matched' : I < target ? 'Current low' : 'Current high';
+    return { V, R, n, type, req, I, P, target, error, tolerance, status, voltageRule, currentRule };
+  }
+
+  function updateUI() {
+    const c = getCircuit();
+    voltageValue.textContent = c.V + ' V';
+    resistanceValue.textContent = c.R + ' Ω';
+    countValue.textContent = c.n;
+    targetValue.textContent = c.target.toFixed(2) + ' A';
+    typeValue.textContent = circuitTypeEl.options[circuitTypeEl.selectedIndex].text.replace(' Combination','');
+
+    scoreText.textContent = Math.floor(score);
+    levelText.textContent = level;
+    highScoreText.textContent = Math.floor(highScore);
+    livesText.textContent = lives;
+    timerText.textContent = Math.ceil(timer) + 's';
+    messageBox.textContent = message;
+
+    reqValue.textContent = format(c.req, 'Ω');
+    currentValue.textContent = format(c.I, 'A');
+    targetReadValue.textContent = format(c.target, 'A');
+    powerValue.textContent = format(c.P, 'W');
+    voltageRuleValue.textContent = c.voltageRule;
+    currentRuleValue.textContent = c.currentRule;
+    errorValue.textContent = format(c.error, 'A');
+    statusValue.textContent = c.status;
+
+    if (c.status === 'Target matched') {
+      hintBox.textContent = 'Excellent! Actual current is close to target current. Press POWER CITY to complete mission.';
+    } else if (c.status === 'Current low') {
+      hintBox.textContent = 'Current is low. Increase voltage, reduce resistance, or use parallel combination.';
+    } else {
+      hintBox.textContent = 'Current is high. Reduce voltage, increase resistance, or use series combination.';
+    }
+  }
+
+  function drawBackground(time) {
+    const grad = ctx.createRadialGradient(640, 310, 40, 640, 310, 820);
+    grad.addColorStop(0, '#123c8c');
+    grad.addColorStop(0.45, '#071a45');
+    grad.addColorStop(1, '#020716');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.save();
+    starField.forEach(s => {
+      ctx.globalAlpha = 0.35 + 0.45 * Math.sin(time * 0.002 * s.tw + s.x);
+      ctx.fillStyle = '#dff7ff';
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    ctx.restore();
+
+    ctx.strokeStyle = 'rgba(83,212,255,.14)';
+    ctx.lineWidth = 1;
+    for (let x = 80; x < 1240; x += 80) {
+      ctx.beginPath();
+      ctx.moveTo(x, 120);
+      ctx.lineTo(x, 540);
+      ctx.stroke();
+    }
+    for (let y = 130; y < 540; y += 70) {
+      ctx.beginPath();
+      ctx.moveTo(80, y);
+      ctx.lineTo(1200, y);
+      ctx.stroke();
+    }
+  }
+
+  function drawCity() {
+    ctx.save();
+    ctx.fillStyle = 'rgba(83,212,255,.10)';
+    ctx.strokeStyle = 'rgba(83,212,255,.72)';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.roundRect(860, 210, 270, 210, 24);
+    ctx.fill();
+    ctx.stroke();
+
+    const c = getCircuit();
+    const lit = c.status === 'Target matched';
+    ctx.fillStyle = lit ? '#ffdf3f' : 'rgba(255,255,255,.22)';
+    for (let i = 0; i < 4; i++) {
+      for (let j = 0; j < 3; j++) {
+        ctx.fillRect(900 + i * 48, 250 + j * 45, 24, 24);
+      }
+    }
+    ctx.fillStyle = '#fff2cc';
+    ctx.font = 'bold 18px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(lit ? 'ROBOT CITY POWERED' : 'ROBOT CITY NEEDS POWER', 995, 455);
+    ctx.restore();
+  }
+
+  function drawCircuit() {
+    const c = getCircuit();
+    ctx.save();
+
+    ctx.fillStyle = 'rgba(83,212,255,.08)';
+    ctx.strokeStyle = 'rgba(83,212,255,.75)';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.roundRect(105, 120, 720, 390, 28);
+    ctx.fill();
+    ctx.stroke();
+
+    drawBattery(170, 315, c.V);
+    drawAmmeter(380, 455, c.I);
+    drawVoltmeter(560, 175, c.V);
+
+    ctx.strokeStyle = '#dff7ff';
+    ctx.lineWidth = 7;
+    ctx.lineCap = 'round';
+
+    if (c.type === 'single') {
+      drawWirePath([[210,315],[290,315],[290,455],[730,455],[730,315],[700,315]]);
+      drawResistor(470,455,120,34,'R = '+c.R+'Ω');
+      drawWirePath([[700,315],[210,315]]);
+    } else if (c.type === 'series') {
+      drawWirePath([[210,315],[290,315],[290,455],[730,455],[730,315],[700,315],[210,315]]);
+      for (let i = 0; i < c.n; i++) {
+        const x = 390 + i * (230 / Math.max(1, c.n - 1 || 1));
+        drawResistor(x,455,90,30,'R'+(i+1));
+      }
+    } else {
+      drawWirePath([[210,315],[290,315],[290,215],[730,215],[730,315],[700,315],[210,315]]);
+      drawWirePath([[290,315],[290,455],[730,455],[730,315]]);
+      for (let i = 0; i < c.n; i++) {
+        const y = 225 + i * (220 / Math.max(1, c.n - 1 || 1));
+        drawWirePath([[330,y],[400,y]]);
+        drawResistor(520,y,150,28,'Branch '+(i+1));
+        drawWirePath([[640,y],[700,y]]);
+      }
+    }
+
+    drawElectrons(c);
+
+    ctx.fillStyle = '#fff2cc';
+    ctx.font = 'bold 18px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('CIRCUIT BUILDER ARENA', 465, 96);
+    ctx.restore();
+  }
+
+  function drawWirePath(points) {
+    ctx.beginPath();
+    points.forEach((p, i) => {
+      if (i === 0) ctx.moveTo(p[0], p[1]);
+      else ctx.lineTo(p[0], p[1]);
+    });
+    ctx.stroke();
+  }
+
+  function drawBattery(x, y, V) {
+    ctx.save();
+    ctx.strokeStyle = '#fff2cc';
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.moveTo(x, y - 58);
+    ctx.lineTo(x, y + 58);
+    ctx.moveTo(x + 24, y - 38);
+    ctx.lineTo(x + 24, y + 38);
+    ctx.stroke();
+    ctx.fillStyle = '#ffdf3f';
+    ctx.font = 'bold 15px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('+', x - 15, y - 45);
+    ctx.fillText('−', x + 40, y + 45);
+    ctx.fillText(V + ' V', x + 12, y + 84);
+    ctx.restore();
+  }
+
+  function drawAmmeter(x, y, I) {
+    ctx.save();
+    ctx.fillStyle = '#102033';
+    ctx.strokeStyle = '#53d4ff';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.arc(x, y, 32, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 16px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('A', x, y + 5);
+    ctx.font = 'bold 12px Arial';
+    ctx.fillText(I.toFixed(2) + 'A', x, y + 50);
+    ctx.restore();
+  }
+
+  function drawVoltmeter(x, y, V) {
+    ctx.save();
+    ctx.fillStyle = '#102033';
+    ctx.strokeStyle = '#ffdf3f';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.arc(x, y, 32, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 16px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('V', x, y + 5);
+    ctx.font = 'bold 12px Arial';
+    ctx.fillText(V.toFixed(0) + 'V', x, y + 50);
+    ctx.restore();
+  }
+
+  function drawResistor(x, y, w, h, label) {
+    ctx.save();
+    ctx.fillStyle = '#ff9b3d';
+    ctx.strokeStyle = '#5b2d14';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.roundRect(x - w/2, y - h/2, w, h, 10);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 13px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(label, x, y + 5);
+    ctx.restore();
+  }
+
+  function drawElectrons(c) {
+    if (!running && c.status !== 'Target matched') return;
+    const speed = Math.min(6, 1 + c.I * 0.6);
+    const dots = 18;
+    ctx.save();
+    ctx.fillStyle = '#53d4ff';
+    for (let i = 0; i < dots; i++) {
+      const t = (electronPhase * speed + i / dots) % 1;
+      let x, y;
+      if (t < 0.25) { x = 210 + t/0.25 * 520; y = 315; }
+      else if (t < 0.5) { x = 730; y = 315 + (t-0.25)/0.25 * 140; }
+      else if (t < 0.75) { x = 730 - (t-0.5)/0.25 * 520; y = 455; }
+      else { x = 210; y = 455 - (t-0.75)/0.25 * 140; }
+      ctx.beginPath();
+      ctx.arc(x, y, 5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  function drawPowerBeam() {
+    const c = getCircuit();
+    if (c.status !== 'Target matched' || !running) return;
+    ctx.save();
+    ctx.strokeStyle = 'rgba(83,255,158,.75)';
+    ctx.lineWidth = 10;
+    ctx.setLineDash([15, 12]);
+    ctx.beginPath();
+    ctx.moveTo(825, 315);
+    ctx.lineTo(860, 315);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.restore();
+  }
+
+  function drawParticles() {
+    ctx.save();
+    particles.forEach(p => {
+      ctx.globalAlpha = Math.max(0, p.life);
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 7 * p.life, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    ctx.restore();
+  }
+
+  function explode(x, y, color) {
+    for (let i = 0; i < 34; i++) {
+      particles.push({
+        x,
+        y,
+        vx: random(-230, 230),
+        vy: random(-230, 230),
+        life: 1,
+        color: color || (i % 2 ? '#ffdf3f' : '#53d4ff')
+      });
+    }
+  }
+
+  function updateGame(dt) {
+    if (!running || paused || lives <= 0) return;
+    timer = Math.max(0, timer - dt);
+    electronPhase += dt * 0.24;
+
+    const c = getCircuit();
+    if (!judgedThisRun && timer < 58) {
+      if (c.status === 'Target matched') {
+        score += 100;
+        level = Math.floor(score / 300) + 1;
+        highScore = Math.max(highScore, score);
+        localStorage.setItem('drAiOhmsCircuitBuilderHighScore', String(highScore));
+        explode(995, 315, '#53ff9e');
+        message = 'City powered successfully! +100';
+        judgedThisRun = true;
+      } else if (timer < 50) {
+        lives -= 1;
+        explode(995, 315, '#ff653b');
+        message = lives > 0 ? 'Wrong current! Adjust circuit and try again.' : 'Game Over';
+        running = false;
+        judgedThisRun = true;
+      }
+    }
+
+    if (timer <= 0 && lives > 0) {
+      lives -= 1;
+      running = false;
+      message = lives > 0 ? 'Time up! Try faster circuit setup.' : 'Game Over';
+    }
+  }
+
+  function updateParticles(dt) {
+    particles.forEach(p => {
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+      p.life -= dt * 1.25;
+    });
+    particles = particles.filter(p => p.life > 0);
+  }
+
+  function drawDiagram() {
+    dctx.clearRect(0, 0, diagramCanvas.width, diagramCanvas.height);
+    dctx.fillStyle = '#fff7df';
+    dctx.fillRect(0, 0, diagramCanvas.width, diagramCanvas.height);
+
+    dctx.strokeStyle = '#102033';
+    dctx.lineWidth = 4;
+    dctx.beginPath();
+    dctx.moveTo(55, 60);
+    dctx.lineTo(240, 60);
+    dctx.lineTo(240, 140);
+    dctx.lineTo(55, 140);
+    dctx.closePath();
+    dctx.stroke();
+
+    dctx.strokeStyle = '#0b55a4';
+    dctx.beginPath();
+    dctx.moveTo(55, 85);
+    dctx.lineTo(55, 115);
+    dctx.moveTo(68, 75);
+    dctx.lineTo(68, 125);
+    dctx.stroke();
+
+    dctx.fillStyle = '#ff9b3d';
+    dctx.strokeStyle = '#5b2d14';
+    dctx.beginPath();
+    dctx.roundRect(120, 124, 65, 28, 8);
+    dctx.fill();
+    dctx.stroke();
+
+    dctx.fillStyle = '#102033';
+    dctx.font = 'bold 13px Arial';
+    dctx.textAlign = 'center';
+    dctx.fillText('V = IR', 150, 28);
+    dctx.fillText('Battery', 62, 150);
+    dctx.fillText('Resistor', 152, 170);
+    dctx.fillText('Current flows in closed circuit', 150, 48);
+  }
+
+  function startMission() {
+    if (lives <= 0) return;
+    running = true;
+    paused = false;
+    timer = 60;
+    judgedThisRun = false;
+    message = 'Power mission started!';
+    pauseBtn.textContent = 'Pause';
+  }
+
+  function resetRound() {
+    running = false;
+    paused = false;
+    timer = 60;
+    judgedThisRun = false;
+    message = 'Round reset.';
+    pauseBtn.textContent = 'Pause';
+  }
+
+  function newMission() {
+    running = false;
+    paused = false;
+    voltageEl.value = Math.round(random(6, 24));
+    resistanceEl.value = Math.round(random(3, 24));
+    countEl.value = Math.round(random(1, 4));
+    const types = ['single', 'series', 'parallel'];
+    circuitTypeEl.value = types[Math.floor(random(0, types.length))];
+    const c = getCircuit();
+    targetCurrentEl.value = Math.max(0.2, Math.min(10, c.I * random(0.75, 1.25))).toFixed(1);
+    timer = 60;
+    judgedThisRun = false;
+    message = 'New power mission generated.';
+    pauseBtn.textContent = 'Pause';
+  }
+
+  function restartGame() {
+    score = 0;
+    level = 1;
+    lives = 5;
+    timer = 60;
+    running = false;
+    paused = false;
+    particles = [];
+    judgedThisRun = false;
+    message = 'New game started.';
+    pauseBtn.textContent = 'Pause';
+  }
+
+  function gameLoop(timestamp) {
+    if (!lastTime) lastTime = timestamp;
+    const dt = Math.min(0.04, (timestamp - lastTime) / 1000);
+    lastTime = timestamp;
+
+    if (!paused) {
+      updateGame(dt);
+      updateParticles(dt);
+    }
+
+    updateUI();
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawBackground(timestamp);
+    drawCircuit();
+    drawPowerBeam();
+    drawCity();
+    drawParticles();
+    drawDiagram();
+
+    requestAnimationFrame(gameLoop);
+  }
+
+  [voltageEl, resistanceEl, countEl, circuitTypeEl, targetCurrentEl].forEach(el => {
+    el.addEventListener('input', updateUI);
+    el.addEventListener('change', updateUI);
+  });
+
+  startBtn.addEventListener('click', startMission);
+  pauseBtn.addEventListener('click', () => {
+    paused = !paused;
+    pauseBtn.textContent = paused ? 'Resume' : 'Pause';
+    message = paused ? 'Paused' : 'Ready';
+  });
+  resetBtn.addEventListener('click', resetRound);
+  newMissionBtn.addEventListener('click', newMission);
+  restartBtn.addEventListener('click', restartGame);
+
+  updateUI();
+  drawDiagram();
+  requestAnimationFrame(gameLoop);
+</script>
+</body>
+</html>

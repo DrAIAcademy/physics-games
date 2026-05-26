@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Satellite Orbit Commander | Dr AI Academy</title>
+  <style>
+    :root {
+      --panel:#ffffff;
+      --ink:#102033;
+      --muted:#637083;
+      --blue:#1769ff;
+      --green:#0f9d58;
+      --orange:#f57c00;
+      --red:#d93025;
+      --purple:#7b1fa2;
+      --line:#dbe6f6;
+      --soft:#f7fbff;
+      --shadow:0 14px 30px rgba(16,32,51,.14);
+    }
+
+    * { box-sizing:border-box; }
+
+    body {
+      margin:0;
+      font-family:"Trebuchet MS", Arial, sans-serif;
+      background:linear-gradient(180deg,#edf7ff,#ffffff);
+      color:var(--ink);
+    }
+
+    header {
+      text-align:center;
+      padding:22px 16px;
+      color:#fff;
+      background:linear-gradient(135deg,#061d49,#0d6efd);
+    }
+
+    header h1 {
+      margin:0 0 8px;
+      font-size:clamp(26px,4vw,44px);
+      font-weight:1000;
+    }
+
+    header p {
+      margin:0;
+      opacity:.95;
+      font-size:16px;
+    }
+
+    .app {
+      max-width:1280px;
+      margin:22px auto 34px;
+      padding:0 16px;
+    }
+
+    .game-stage-card {
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:24px;
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+
+    .top-hud {
+      display:grid;
+      grid-template-columns:repeat(5,1fr);
+      gap:10px;
+      padding:14px;
+      background:linear-gradient(180deg,#ffffff,#f4f9ff);
+      border-bottom:1px solid var(--line);
+    }
+
+    .hud-box {
+      border:2px solid #dbeafe;
+      border-radius:16px;
+      background:linear-gradient(180deg,#ffffff,#eef7ff);
+      padding:10px 12px;
+      text-align:center;
+    }
+
+    .hud-box b {
+      display:block;
+      color:var(--muted);
+      font-size:13px;
+      margin-bottom:4px;
+    }
+
+    .hud-box span {
+      font-size:24px;
+      color:#0b3d7a;
+      font-weight:1000;
+    }
+
+    .game-window {
+      position:relative;
+      width:100%;
+      aspect-ratio:16/8.2;
+      min-height:520px;
+      background:#06122b;
+    }
+
+    canvas#gameCanvas {
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+      display:block;
+      z-index:1;
+    }
+
+    .game-message {
+      position:absolute;
+      left:50%;
+      bottom:18px;
+      transform:translateX(-50%);
+      min-width:340px;
+      max-width:82%;
+      text-align:center;
+      background:rgba(10,18,45,.92);
+      border:3px solid rgba(255,255,255,.35);
+      border-radius:999px;
+      color:#fff2cc;
+      padding:10px 22px;
+      font-weight:1000;
+      font-size:20px;
+      z-index:2;
+      box-shadow:0 8px 20px rgba(0,0,0,.18);
+      pointer-events:none;
+    }
+
+    .watermark {
+      position:absolute;
+      right:18px;
+      bottom:18px;
+      color:rgba(255,255,255,.78);
+      text-align:right;
+      font-weight:900;
+      text-shadow:1px 1px 3px rgba(0,0,0,.35);
+      z-index:2;
+      pointer-events:none;
+    }
+
+    .workspace {
+      display:grid;
+      grid-template-columns:1.1fr .9fr;
+      gap:18px;
+      margin-top:18px;
+    }
+
+    .card {
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:22px;
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+
+    .card-head {
+      padding:16px 18px;
+      background:linear-gradient(180deg,#ffffff,#f4f9ff);
+      border-bottom:1px solid var(--line);
+    }
+
+    .card-head h2 {
+      margin:0;
+      font-size:22px;
+      color:#102033;
+    }
+
+    .card-body { padding:18px; }
+
+    .control-grid {
+      display:grid;
+      grid-template-columns:1fr;
+      gap:14px;
+    }
+
+    .control-box {
+      border:2px solid #e3edf9;
+      background:linear-gradient(180deg,#ffffff,#f7fbff);
+      border-radius:18px;
+      padding:14px;
+    }
+
+    .control-title {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      margin-bottom:10px;
+      font-weight:1000;
+      color:#243244;
+      font-size:18px;
+    }
+
+    .control-title span {
+      min-width:112px;
+      text-align:center;
+      color:#0b55a4;
+      background:#eaf4ff;
+      border:2px solid #cfe4ff;
+      padding:6px 10px;
+      border-radius:12px;
+      font-weight:1000;
+    }
+
+    input[type="range"] {
+      width:100%;
+      accent-color:var(--blue);
+      cursor:pointer;
+    }
+
+    .button-row {
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
+      margin-top:16px;
+    }
+
+    button {
+      border:0;
+      border-radius:16px;
+      padding:14px 16px;
+      font-size:17px;
+      font-weight:1000;
+      color:#fff;
+      cursor:pointer;
+      box-shadow:0 6px 0 rgba(0,0,0,.18), 0 12px 20px rgba(0,0,0,.12);
+    }
+
+    .start-btn {
+      grid-column:1/-1;
+      font-size:28px;
+      padding:18px 16px;
+      background:linear-gradient(#b9ff4e,#3fae12);
+      text-shadow:2px 2px 0 #24550a;
+      border:4px solid #2e6f0a;
+    }
+
+    .pause-btn { background:linear-gradient(#ffb347,#f57c00); }
+    .reset-btn { background:linear-gradient(#ff6b6b,#d93025); }
+    .mission-btn { background:linear-gradient(#3ccf7a,#0f9d58); }
+    .restart-btn { background:linear-gradient(#9b6cff,#6d35c9); }
+
+    .hint-box {
+      margin-top:14px;
+      padding:14px;
+      border-radius:16px;
+      background:#fff7df;
+      border:2px solid #ffe0a3;
+      color:#6b3a08;
+      font-weight:900;
+      line-height:1.45;
+    }
+
+    .values-grid {
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
+    }
+
+    .value-card {
+      border:2px solid #e3edf9;
+      background:#f7fbff;
+      border-radius:16px;
+      padding:12px;
+    }
+
+    .value-card b {
+      display:block;
+      color:var(--muted);
+      font-size:13px;
+      margin-bottom:4px;
+    }
+
+    .value-card span {
+      font-size:18px;
+      color:#0b3d7a;
+      font-weight:1000;
+    }
+
+    .explain-layout {
+      display:grid;
+      grid-template-columns:300px 1fr;
+      gap:16px;
+      align-items:center;
+    }
+
+    .diagram-box {
+      border:2px solid #e3edf9;
+      background:#fff7df;
+      border-radius:18px;
+      padding:12px;
+    }
+
+    #diagramCanvas {
+      width:100%;
+      height:190px;
+      display:block;
+    }
+
+    .formula-list {
+      margin:0;
+      padding:0;
+      list-style:none;
+      display:grid;
+      gap:8px;
+    }
+
+    .formula-list li {
+      background:#f7fbff;
+      border:1px solid #dbeafe;
+      padding:9px 12px;
+      border-radius:12px;
+      color:#0b55a4;
+      font-weight:900;
+      font-size:15px;
+    }
+
+    .learning-section {
+      display:grid;
+      grid-template-columns:repeat(2,1fr);
+      gap:18px;
+      margin-top:18px;
+    }
+
+    .learning-section ul,
+    .learning-section ol {
+      margin:0;
+      padding-left:22px;
+      line-height:1.65;
+      color:#39485c;
+    }
+
+    .learning-section p {
+      color:#39485c;
+      line-height:1.6;
+    }
+
+    footer {
+      text-align:center;
+      padding:10px 16px 32px;
+      color:#637083;
+      font-size:14px;
+    }
+
+    footer a {
+      color:#0b55a4;
+      font-weight:1000;
+      text-decoration:none;
+    }
+
+    footer a:hover { text-decoration:underline; }
+
+    @media(max-width:980px) {
+      .top-hud { grid-template-columns:repeat(2,1fr); }
+      .game-window { aspect-ratio:auto; min-height:440px; }
+      .workspace,
+      .learning-section,
+      .explain-layout { grid-template-columns:1fr; }
+      .values-grid { grid-template-columns:1fr; }
+      .button-row { grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body>
+<header>
+  <h1>Satellite Orbit Commander</h1>
+  <p>NEET Physics sci-fi game: choose correct orbital speed to keep satellite stable, avoid crash, or prevent escape</p>
+</header>
+
+<main class="app">
+  <section class="game-stage-card">
+    <div class="top-hud">
+      <div class="hud-box"><b>Score</b><span id="scoreText">0</span></div>
+      <div class="hud-box"><b>Level</b><span id="levelText">1</span></div>
+      <div class="hud-box"><b>High Score</b><span id="highScoreText">0</span></div>
+      <div class="hud-box"><b>Lives</b><span id="livesText">5</span></div>
+      <div class="hud-box"><b>Timer</b><span id="timerText">60s</span></div>
+    </div>
+
+    <div class="game-window">
+      <canvas id="gameCanvas" width="1280" height="640"></canvas>
+      <div class="game-message" id="messageBox">Ready: adjust altitude and launch speed.</div>
+      <div class="watermark">Dr AI Academy<br>AI Powered Physics Game Lab</div>
+    </div>
+  </section>
+
+  <section class="workspace">
+    <div class="card">
+      <div class="card-head"><h2>Mission Controls</h2></div>
+      <div class="card-body">
+        <div class="control-grid">
+          <div class="control-box">
+            <div class="control-title">Altitude h <span id="altitudeValue">1200 km</span></div>
+            <input id="altitude" type="range" min="300" max="8000" step="100" value="1200" />
+          </div>
+
+          <div class="control-box">
+            <div class="control-title">Launch Speed v <span id="speedValue">7.20 km/s</span></div>
+            <input id="speed" type="range" min="3" max="13" step="0.05" value="7.20" />
+          </div>
+
+          <div class="control-box">
+            <div class="control-title">Planet Mass Factor <span id="planetMassValue">1.00×</span></div>
+            <input id="planetMass" type="range" min="0.5" max="2" step="0.05" value="1" />
+          </div>
+
+          <div class="control-box">
+            <div class="control-title">Satellite Mass m <span id="satMassValue">500 kg</span></div>
+            <input id="satMass" type="range" min="100" max="2000" step="50" value="500" />
+          </div>
+        </div>
+
+        <div class="button-row">
+          <button class="start-btn" id="startBtn">LAUNCH SATELLITE</button>
+          <button class="pause-btn" id="pauseBtn">Pause</button>
+          <button class="reset-btn" id="resetBtn">Reset Mission</button>
+          <button class="mission-btn" id="newMissionBtn">New Mission</button>
+          <button class="restart-btn" id="restartBtn">Restart Game</button>
+        </div>
+
+        <div class="hint-box" id="hintBox">Goal: Match launch speed with orbital velocity. Too slow crashes; too fast escapes.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>Live Physics Values</h2></div>
+      <div class="card-body">
+        <div class="values-grid">
+          <div class="value-card"><b>Orbital Velocity</b><span id="orbitalValue">--</span></div>
+          <div class="value-card"><b>Escape Velocity</b><span id="escapeValue">--</span></div>
+          <div class="value-card"><b>Orbit Radius</b><span id="radiusValue">--</span></div>
+          <div class="value-card"><b>Time Period</b><span id="periodValue">--</span></div>
+          <div class="value-card"><b>Gravity at Orbit</b><span id="gravityValue">--</span></div>
+          <div class="value-card"><b>Mission Status</b><span id="statusValue">--</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" style="margin-top:18px;">
+    <div class="card-head"><h2>Orbit Diagram + Formulas</h2></div>
+    <div class="card-body explain-layout">
+      <div class="diagram-box">
+        <canvas id="diagramCanvas" width="300" height="190"></canvas>
+      </div>
+      <ul class="formula-list">
+        <li>Gravitational force: F = GMm / r²</li>
+        <li>Orbital velocity: v₀ = √(GM / r)</li>
+        <li>Escape velocity: vₑ = √(2GM / r)</li>
+        <li>Time period: T = 2πr / v₀</li>
+        <li>Gravity at height: g' = GM / r²</li>
+        <li>Stable orbit occurs when gravity provides required centripetal force.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="learning-section">
+    <div class="card">
+      <div class="card-head"><h2>Simple Explanation</h2></div>
+      <div class="card-body">
+        <p>A satellite stays in orbit because gravity continuously pulls it toward the planet and provides the centripetal force. If speed is too low, it falls toward the planet. If speed is close to orbital velocity, it stays in stable orbit. If speed reaches escape velocity, it escapes the planet’s gravity.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>NEET Traps</h2></div>
+      <div class="card-body">
+        <ul>
+          <li>Satellite is always falling toward Earth, but its tangential speed keeps it orbiting.</li>
+          <li>Orbital velocity decreases as orbital radius increases.</li>
+          <li>Escape velocity is √2 times orbital velocity at the same radius.</li>
+          <li>Orbital velocity does not depend on satellite mass.</li>
+          <li>Gravity at height is less than gravity at planet surface.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>Observation Questions</h2></div>
+      <div class="card-body">
+        <ol>
+          <li>What happens if satellite speed is less than orbital velocity?</li>
+          <li>What happens if satellite speed reaches escape velocity?</li>
+          <li>Why does orbital velocity decrease at higher altitude?</li>
+          <li>Does satellite mass affect orbital velocity?</li>
+          <li>Why does gravity act as centripetal force?</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>Learning Goal</h2></div>
+      <div class="card-body">
+        <ul>
+          <li>Visualize stable orbit, crash and escape.</li>
+          <li>Compare actual speed with orbital and escape speed.</li>
+          <li>Understand gravity as centripetal force.</li>
+          <li>Connect satellite motion formulas with gameplay.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <a href="https://courses.draiacademy.com" target="_blank" rel="noopener">Dr AI Academy</a> | AI Powered Physics Game Lab
+</footer>
+
+<script>
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
+  const diagramCanvas = document.getElementById('diagramCanvas');
+  const dctx = diagramCanvas.getContext('2d');
+
+  const altitudeEl = document.getElementById('altitude');
+  const speedEl = document.getElementById('speed');
+  const planetMassEl = document.getElementById('planetMass');
+  const satMassEl = document.getElementById('satMass');
+
+  const altitudeValue = document.getElementById('altitudeValue');
+  const speedValue = document.getElementById('speedValue');
+  const planetMassValue = document.getElementById('planetMassValue');
+  const satMassValue = document.getElementById('satMassValue');
+
+  const scoreText = document.getElementById('scoreText');
+  const levelText = document.getElementById('levelText');
+  const highScoreText = document.getElementById('highScoreText');
+  const livesText = document.getElementById('livesText');
+  const timerText = document.getElementById('timerText');
+  const messageBox = document.getElementById('messageBox');
+  const hintBox = document.getElementById('hintBox');
+
+  const orbitalValue = document.getElementById('orbitalValue');
+  const escapeValue = document.getElementById('escapeValue');
+  const radiusValue = document.getElementById('radiusValue');
+  const periodValue = document.getElementById('periodValue');
+  const gravityValue = document.getElementById('gravityValue');
+  const statusValue = document.getElementById('statusValue');
+
+  const startBtn = document.getElementById('startBtn');
+  const pauseBtn = document.getElementById('pauseBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const newMissionBtn = document.getElementById('newMissionBtn');
+  const restartBtn = document.getElementById('restartBtn');
+
+  let score = 0;
+  let level = 1;
+  let lives = 5;
+  let timer = 60;
+  let paused = false;
+  let running = false;
+  let lastTime = 0;
+  let satAngle = -Math.PI / 2;
+  let satRadialDrift = 0;
+  let particles = [];
+  let message = 'Ready: adjust altitude and launch speed.';
+  let highScore = Number(localStorage.getItem('drAiSatelliteOrbitHighScore') || 0);
+
+  const visual = {
+    cx: 640,
+    cy: 320,
+    earthR: 92,
+    minOrbitPx: 150,
+    maxOrbitPx: 270
+  };
+
+  const constants = {
+    earthRkm: 6371,
+    muEarth: 398600
+  };
+
+  const starField = Array.from({ length: 110 }, () => ({
+    x: Math.random() * 1280,
+    y: Math.random() * 640,
+    r: Math.random() * 1.8 + 0.4,
+    tw: Math.random() * 2 + 0.5
+  }));
+
+  function random(min, max) {
+    return Math.random() * (max - min) + min;
+  }
+
+  function format(num, unit) {
+    return Number.isFinite(num) ? num.toFixed(2) + ' ' + unit : '--';
+  }
+
+  function getInput() {
+    const h = Number(altitudeEl.value);
+    const v = Number(speedEl.value);
+    const massFactor = Number(planetMassEl.value);
+    const satMass = Number(satMassEl.value);
+    const r = constants.earthRkm + h;
+    const mu = constants.muEarth * massFactor;
+    const vorb = Math.sqrt(mu / r);
+    const vesc = Math.sqrt(2 * mu / r);
+    const period = 2 * Math.PI * r / vorb;
+    const gOrbit = mu / (r * r);
+
+    let status = 'Stable orbit';
+    if (v < 0.88 * vorb) status = 'Crash risk';
+    else if (v > 1.04 * vesc) status = 'Escape path';
+    else if (v > 1.12 * vorb && v < 0.98 * vesc) status = 'High elliptical path';
+    else if (v >= 0.88 * vorb && v <= 1.12 * vorb) status = 'Stable orbit';
+
+    return { h, v, massFactor, satMass, r, mu, vorb, vesc, period, gOrbit, status };
+  }
+
+  function orbitRadiusPx() {
+    const h = Number(altitudeEl.value);
+    const ratio = (h - 300) / (8000 - 300);
+    return visual.minOrbitPx + ratio * (visual.maxOrbitPx - visual.minOrbitPx);
+  }
+
+  function updateUI() {
+    const input = getInput();
+    altitudeValue.textContent = input.h + ' km';
+    speedValue.textContent = input.v.toFixed(2) + ' km/s';
+    planetMassValue.textContent = input.massFactor.toFixed(2) + '×';
+    satMassValue.textContent = input.satMass + ' kg';
+
+    scoreText.textContent = Math.floor(score);
+    levelText.textContent = level;
+    highScoreText.textContent = Math.floor(highScore);
+    livesText.textContent = lives;
+    timerText.textContent = Math.ceil(timer) + 's';
+    messageBox.textContent = message;
+
+    orbitalValue.textContent = format(input.vorb, 'km/s');
+    escapeValue.textContent = format(input.vesc, 'km/s');
+    radiusValue.textContent = format(input.r, 'km');
+    periodValue.textContent = format(input.period / 60, 'min');
+    gravityValue.textContent = format(input.gOrbit, 'km/s²');
+    statusValue.textContent = input.status;
+
+    if (input.status === 'Stable orbit') {
+      hintBox.textContent = 'Good! Launch speed is close to orbital velocity. This gives a stable orbit.';
+    } else if (input.status === 'Crash risk') {
+      hintBox.textContent = 'Speed is too low. Increase launch speed or satellite will fall toward the planet.';
+    } else if (input.status === 'Escape path') {
+      hintBox.textContent = 'Speed is too high. Satellite may escape the planet’s gravity.';
+    } else {
+      hintBox.textContent = 'Speed is higher than circular orbit speed. Satellite may move into an elliptical path.';
+    }
+  }
+
+  function drawBackground(time) {
+    const grad = ctx.createRadialGradient(640, 310, 30, 640, 310, 820);
+    grad.addColorStop(0, '#123c8c');
+    grad.addColorStop(0.45, '#071a45');
+    grad.addColorStop(1, '#020716');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.save();
+    starField.forEach(s => {
+      ctx.globalAlpha = 0.35 + 0.45 * Math.sin(time * 0.002 * s.tw + s.x);
+      ctx.fillStyle = '#dff7ff';
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    ctx.restore();
+
+    drawPlanet(170, 100, 46, '#b086ff', '#f1d5ff');
+    drawPlanet(1100, 120, 60, '#ffb36b', '#ffe0a4');
+  }
+
+  function drawPlanet(x, y, r, c1, c2) {
+    const grad = ctx.createRadialGradient(x - 16, y - 18, 8, x, y, r);
+    grad.addColorStop(0, c2);
+    grad.addColorStop(1, c1);
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  function drawEarth() {
+    const input = getInput();
+    const r = visual.earthR * Math.pow(input.massFactor, 0.12);
+    const grad = ctx.createRadialGradient(visual.cx - 30, visual.cy - 32, 8, visual.cx, visual.cy, r);
+    grad.addColorStop(0, '#dffaff');
+    grad.addColorStop(0.28, '#2ab7ff');
+    grad.addColorStop(1, '#0b4ca3');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(visual.cx, visual.cy, r, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = 'rgba(25,190,92,.8)';
+    ctx.beginPath();
+    ctx.ellipse(visual.cx - 28, visual.cy - 12, 34, 18, -0.2, 0, Math.PI * 2);
+    ctx.ellipse(visual.cx + 38, visual.cy + 22, 42, 22, 0.5, 0, Math.PI * 2);
+    ctx.ellipse(visual.cx + 10, visual.cy - 45, 26, 13, 0.4, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = 'rgba(180,235,255,.35)';
+    ctx.lineWidth = 9;
+    ctx.beginPath();
+    ctx.arc(visual.cx, visual.cy, r + 10, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+
+  function drawOrbitPath() {
+    const input = getInput();
+    const R = orbitRadiusPx();
+    ctx.save();
+    ctx.strokeStyle = input.status === 'Stable orbit' ? 'rgba(83,212,255,.95)' : input.status === 'Crash risk' ? 'rgba(255,100,100,.95)' : 'rgba(255,210,76,.95)';
+    ctx.lineWidth = 4;
+    ctx.setLineDash([12, 12]);
+    ctx.beginPath();
+    ctx.arc(visual.cx, visual.cy, R, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.fillStyle = 'rgba(83,212,255,.08)';
+    ctx.beginPath();
+    ctx.arc(visual.cx, visual.cy, R, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawSatellite() {
+    const input = getInput();
+    let R = orbitRadiusPx() + satRadialDrift;
+    const x = visual.cx + R * Math.cos(satAngle);
+    const y = visual.cy + R * Math.sin(satAngle);
+    const tangent = satAngle + Math.PI / 2;
+
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(tangent);
+
+    ctx.fillStyle = 'rgba(0,0,0,.25)';
+    ctx.beginPath();
+    ctx.ellipse(0, 25, 40, 10, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#d9e8ff';
+    ctx.strokeStyle = '#102033';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.roundRect(-22, -16, 44, 32, 8);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = '#1769ff';
+    ctx.fillRect(-72, -12, 42, 24);
+    ctx.fillRect(30, -12, 42, 24);
+    ctx.strokeRect(-72, -12, 42, 24);
+    ctx.strokeRect(30, -12, 42, 24);
+
+    ctx.fillStyle = '#ffca36';
+    ctx.beginPath();
+    ctx.arc(0, 0, 8, 0, Math.PI * 2);
+    ctx.fill();
+
+    if (running) {
+      ctx.fillStyle = '#ff7a22';
+      ctx.beginPath();
+      ctx.moveTo(-80, 0);
+      ctx.lineTo(-110 - Math.random() * 10, -10);
+      ctx.lineTo(-110 - Math.random() * 10, 10);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    ctx.restore();
+
+    drawVectors(x, y, input);
+  }
+
+  function drawVectors(x, y, input) {
+    const tangent = satAngle + Math.PI / 2;
+    const centerAngle = Math.atan2(visual.cy - y, visual.cx - x);
+    drawArrow(x, y, x + 72 * Math.cos(tangent), y + 72 * Math.sin(tangent), '#ffdf3f', 'v');
+    drawArrow(x, y, x + 84 * Math.cos(centerAngle), y + 84 * Math.sin(centerAngle), '#0f9d58', 'gravity');
+
+    if (input.status === 'Escape path') {
+      const outward = Math.atan2(y - visual.cy, x - visual.cx);
+      drawArrow(x, y, x + 72 * Math.cos(outward), y + 72 * Math.sin(outward), '#d93025', 'escape');
+    }
+  }
+
+  function drawArrow(x1, y1, x2, y2, color, label) {
+    const a = Math.atan2(y2 - y1, x2 - x1);
+    const h = 12;
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.fillStyle = color;
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x2, y2);
+    ctx.lineTo(x2 - h * Math.cos(a - Math.PI / 6), y2 - h * Math.sin(a - Math.PI / 6));
+    ctx.lineTo(x2 - h * Math.cos(a + Math.PI / 6), y2 - h * Math.sin(a + Math.PI / 6));
+    ctx.closePath();
+    ctx.fill();
+    ctx.font = 'bold 14px Arial';
+    ctx.fillText(label, x2 + 8, y2 - 8);
+    ctx.restore();
+  }
+
+  function drawParticles() {
+    ctx.save();
+    particles.forEach(p => {
+      ctx.globalAlpha = Math.max(0, p.life);
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 7 * p.life, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    ctx.restore();
+  }
+
+  function explode(x, y, color) {
+    for (let i = 0; i < 36; i++) {
+      particles.push({
+        x,
+        y,
+        vx: random(-250, 250),
+        vy: random(-250, 250),
+        life: 1,
+        color: color || (i % 2 ? '#ffdf3f' : '#53d4ff')
+      });
+    }
+  }
+
+  function updateSatellite(dt) {
+    if (!running || paused || lives <= 0) return;
+    const input = getInput();
+    timer = Math.max(0, timer - dt);
+
+    const angularSpeed = input.v / Math.max(1, input.r) * 8;
+    satAngle += angularSpeed * dt;
+
+    const R = orbitRadiusPx() + satRadialDrift;
+    const x = visual.cx + R * Math.cos(satAngle);
+    const y = visual.cy + R * Math.sin(satAngle);
+
+    if (input.status === 'Stable orbit') {
+      satRadialDrift *= 0.96;
+      score += dt * 10;
+      message = 'Stable orbit! Gravity is acting as centripetal force.';
+      if (Math.floor(score / 300) + 1 > level) {
+        level = Math.floor(score / 300) + 1;
+        message = 'Level up! Stable orbit mastered.';
+      }
+    } else if (input.status === 'Crash risk') {
+      satRadialDrift -= 38 * dt;
+      message = 'Falling inward! Speed is too low.';
+      if (R < visual.earthR + 18) {
+        explode(x, y, '#ff653b');
+        lives -= 1;
+        running = false;
+        satRadialDrift = 0;
+        satAngle = -Math.PI / 2;
+        message = lives > 0 ? 'Crash! Increase speed near orbital velocity.' : 'Game Over';
+      }
+    } else if (input.status === 'Escape path') {
+      satRadialDrift += 52 * dt;
+      message = 'Escaping! Speed is near or above escape velocity.';
+      if (R > 355) {
+        explode(x, y, '#ffdf3f');
+        lives -= 1;
+        running = false;
+        satRadialDrift = 0;
+        satAngle = -Math.PI / 2;
+        message = lives > 0 ? 'Satellite escaped! Reduce launch speed.' : 'Game Over';
+      }
+    } else {
+      satRadialDrift += Math.sin(Date.now() / 400) * 0.15;
+      score += dt * 5;
+      message = 'Elliptical path. Try closer to orbital velocity for stable circular orbit.';
+    }
+
+    highScore = Math.max(highScore, Math.floor(score));
+    localStorage.setItem('drAiSatelliteOrbitHighScore', String(highScore));
+
+    if (timer <= 0 && lives > 0) {
+      running = false;
+      score += 100;
+      highScore = Math.max(highScore, Math.floor(score));
+      message = 'Mission complete! +100 orbit survival bonus';
+      timer = 60;
+    }
+  }
+
+  function updateParticles(dt) {
+    particles.forEach(p => {
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+      p.life -= dt * 1.25;
+    });
+    particles = particles.filter(p => p.life > 0);
+  }
+
+  function drawDiagram() {
+    dctx.clearRect(0, 0, diagramCanvas.width, diagramCanvas.height);
+    dctx.fillStyle = '#fff7df';
+    dctx.fillRect(0, 0, diagramCanvas.width, diagramCanvas.height);
+
+    const cx = 150;
+    const cy = 94;
+    const R = 60;
+    const x = cx + R * Math.cos(-0.9);
+    const y = cy + R * Math.sin(-0.9);
+
+    dctx.strokeStyle = '#1769ff';
+    dctx.lineWidth = 4;
+    dctx.setLineDash([8, 8]);
+    dctx.beginPath();
+    dctx.arc(cx, cy, R, 0, Math.PI * 2);
+    dctx.stroke();
+    dctx.setLineDash([]);
+
+    const grad = dctx.createRadialGradient(cx - 12, cy - 12, 4, cx, cy, 30);
+    grad.addColorStop(0, '#dffaff');
+    grad.addColorStop(1, '#1769ff');
+    dctx.fillStyle = grad;
+    dctx.beginPath();
+    dctx.arc(cx, cy, 28, 0, Math.PI * 2);
+    dctx.fill();
+
+    dctx.fillStyle = '#25354b';
+    dctx.beginPath();
+    dctx.arc(x, y, 10, 0, Math.PI * 2);
+    dctx.fill();
+
+    diagramArrow(x, y, x + 52, y + 42, '#ffbf00', 'v');
+    diagramArrow(x, y, cx, cy, '#0f9d58', 'gravity');
+
+    dctx.fillStyle = '#102033';
+    dctx.font = 'bold 13px Arial';
+    dctx.textAlign = 'center';
+    dctx.fillText('Satellite Orbit', 150, 22);
+    dctx.fillText('Gravity provides centripetal force', 150, 174);
+  }
+
+  function diagramArrow(x1, y1, x2, y2, color, label) {
+    const a = Math.atan2(y2 - y1, x2 - x1);
+    const h = 9;
+    dctx.strokeStyle = color;
+    dctx.fillStyle = color;
+    dctx.lineWidth = 3;
+    dctx.beginPath();
+    dctx.moveTo(x1, y1);
+    dctx.lineTo(x2, y2);
+    dctx.stroke();
+    dctx.beginPath();
+    dctx.moveTo(x2, y2);
+    dctx.lineTo(x2 - h * Math.cos(a - Math.PI / 6), y2 - h * Math.sin(a - Math.PI / 6));
+    dctx.lineTo(x2 - h * Math.cos(a + Math.PI / 6), y2 - h * Math.sin(a + Math.PI / 6));
+    dctx.closePath();
+    dctx.fill();
+    dctx.font = 'bold 12px Arial';
+    dctx.fillText(label, x2 + 5, y2 - 5);
+  }
+
+  function startMission() {
+    if (lives <= 0) return;
+    running = true;
+    paused = false;
+    satRadialDrift = 0;
+    message = 'Satellite launched!';
+    pauseBtn.textContent = 'Pause';
+  }
+
+  function resetMission() {
+    running = false;
+    paused = false;
+    satAngle = -Math.PI / 2;
+    satRadialDrift = 0;
+    timer = 60;
+    message = 'Mission reset.';
+    pauseBtn.textContent = 'Pause';
+  }
+
+  function newMission() {
+    running = false;
+    paused = false;
+    altitudeEl.value = Math.round(random(500, 7000) / 100) * 100;
+    planetMassEl.value = random(0.7, 1.5).toFixed(2);
+    const input = getInput();
+    speedEl.value = (input.vorb * random(0.82, 1.18)).toFixed(2);
+    satMassEl.value = Math.round(random(300, 1200) / 50) * 50;
+    satAngle = -Math.PI / 2;
+    satRadialDrift = 0;
+    timer = 60;
+    message = 'New orbit mission generated.';
+    pauseBtn.textContent = 'Pause';
+  }
+
+  function restartGame() {
+    score = 0;
+    level = 1;
+    lives = 5;
+    timer = 60;
+    running = false;
+    paused = false;
+    satAngle = -Math.PI / 2;
+    satRadialDrift = 0;
+    particles = [];
+    message = 'New game started.';
+    pauseBtn.textContent = 'Pause';
+  }
+
+  function gameLoop(timestamp) {
+    if (!lastTime) lastTime = timestamp;
+    const dt = Math.min(0.04, (timestamp - lastTime) / 1000);
+    lastTime = timestamp;
+
+    if (!paused) {
+      updateSatellite(dt);
+      updateParticles(dt);
+    }
+
+    updateUI();
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawBackground(timestamp);
+    drawOrbitPath();
+    drawEarth();
+    drawSatellite();
+    drawParticles();
+    drawDiagram();
+
+    requestAnimationFrame(gameLoop);
+  }
+
+  [altitudeEl, speedEl, planetMassEl, satMassEl].forEach(el => {
+    el.addEventListener('input', updateUI);
+  });
+
+  startBtn.addEventListener('click', startMission);
+  pauseBtn.addEventListener('click', () => {
+    paused = !paused;
+    pauseBtn.textContent = paused ? 'Resume' : 'Pause';
+    message = paused ? 'Paused' : 'Ready';
+  });
+  resetBtn.addEventListener('click', resetMission);
+  newMissionBtn.addEventListener('click', newMission);
+  restartBtn.addEventListener('click', restartGame);
+
+  updateUI();
+  drawDiagram();
+  requestAnimationFrame(gameLoop);
+</script>
+</body>
+</html>

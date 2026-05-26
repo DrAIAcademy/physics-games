@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Logic Gate Puzzle Game | Dr AI Academy</title>
+  <style>
+    :root {
+      --panel:#ffffff;
+      --ink:#102033;
+      --muted:#637083;
+      --blue:#1769ff;
+      --green:#0f9d58;
+      --orange:#f57c00;
+      --red:#d93025;
+      --purple:#7b1fa2;
+      --line:#dbe6f6;
+      --soft:#f7fbff;
+      --shadow:0 14px 30px rgba(16,32,51,.14);
+      --gold:#ffdf3f;
+    }
+
+    * { box-sizing:border-box; }
+
+    body {
+      margin:0;
+      font-family:"Trebuchet MS", Arial, sans-serif;
+      background:linear-gradient(180deg,#edf7ff,#ffffff);
+      color:var(--ink);
+    }
+
+    header {
+      text-align:center;
+      padding:22px 16px;
+      color:#fff;
+      background:linear-gradient(135deg,#061d49,#0d6efd);
+    }
+
+    header h1 {
+      margin:0 0 8px;
+      font-size:clamp(26px,4vw,44px);
+      font-weight:1000;
+    }
+
+    header p {
+      margin:0;
+      opacity:.95;
+      font-size:16px;
+    }
+
+    .app {
+      max-width:1280px;
+      margin:22px auto 34px;
+      padding:0 16px;
+    }
+
+    .game-stage-card {
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:24px;
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+
+    .top-hud {
+      display:grid;
+      grid-template-columns:repeat(5,1fr);
+      gap:10px;
+      padding:14px;
+      background:linear-gradient(180deg,#ffffff,#f4f9ff);
+      border-bottom:1px solid var(--line);
+    }
+
+    .hud-box {
+      border:2px solid #dbeafe;
+      border-radius:16px;
+      background:linear-gradient(180deg,#ffffff,#eef7ff);
+      padding:10px 12px;
+      text-align:center;
+    }
+
+    .hud-box b {
+      display:block;
+      color:var(--muted);
+      font-size:13px;
+      margin-bottom:4px;
+    }
+
+    .hud-box span {
+      font-size:24px;
+      color:#0b3d7a;
+      font-weight:1000;
+    }
+
+    .game-window {
+      position:relative;
+      width:100%;
+      aspect-ratio:16/8.2;
+      min-height:520px;
+      background:#06122b;
+    }
+
+    canvas#gameCanvas {
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+      display:block;
+      z-index:1;
+    }
+
+    .game-message {
+      position:absolute;
+      left:50%;
+      bottom:18px;
+      transform:translateX(-50%);
+      min-width:340px;
+      max-width:82%;
+      text-align:center;
+      background:rgba(10,18,45,.92);
+      border:3px solid rgba(255,255,255,.35);
+      border-radius:999px;
+      color:#fff2cc;
+      padding:10px 22px;
+      font-weight:1000;
+      font-size:20px;
+      z-index:2;
+      box-shadow:0 8px 20px rgba(0,0,0,.18);
+      pointer-events:none;
+    }
+
+    .watermark {
+      position:absolute;
+      right:18px;
+      bottom:18px;
+      color:rgba(255,255,255,.78);
+      text-align:right;
+      font-weight:900;
+      text-shadow:1px 1px 3px rgba(0,0,0,.35);
+      z-index:2;
+      pointer-events:none;
+    }
+
+    .workspace {
+      display:grid;
+      grid-template-columns:1.1fr .9fr;
+      gap:18px;
+      margin-top:18px;
+    }
+
+    .card {
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:22px;
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+
+    .card-head {
+      padding:16px 18px;
+      background:linear-gradient(180deg,#ffffff,#f4f9ff);
+      border-bottom:1px solid var(--line);
+    }
+
+    .card-head h2 {
+      margin:0;
+      font-size:22px;
+      color:#102033;
+    }
+
+    .card-body { padding:18px; }
+
+    .control-grid {
+      display:grid;
+      grid-template-columns:1fr;
+      gap:14px;
+    }
+
+    .control-box {
+      border:2px solid #e3edf9;
+      background:linear-gradient(180deg,#ffffff,#f7fbff);
+      border-radius:18px;
+      padding:14px;
+    }
+
+    .control-title {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      margin-bottom:10px;
+      font-weight:1000;
+      color:#243244;
+      font-size:18px;
+    }
+
+    .control-title span {
+      min-width:112px;
+      text-align:center;
+      color:#0b55a4;
+      background:#eaf4ff;
+      border:2px solid #cfe4ff;
+      padding:6px 10px;
+      border-radius:12px;
+      font-weight:1000;
+    }
+
+    select {
+      width:100%;
+      padding:12px;
+      border-radius:14px;
+      border:2px solid #cfe4ff;
+      background:#fff;
+      color:#102033;
+      font-weight:900;
+      font-size:16px;
+    }
+
+    .toggle-row {
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
+    }
+
+    .toggle-btn {
+      background:linear-gradient(#ffffff,#f7fbff);
+      color:#102033;
+      border:2px solid #cfe4ff;
+      box-shadow:none;
+      padding:12px;
+      font-size:17px;
+      border-radius:16px;
+    }
+
+    .toggle-btn.active {
+      color:white;
+      background:linear-gradient(#3ccf7a,#0f9d58);
+      border-color:#087f46;
+      box-shadow:0 6px 0 rgba(0,0,0,.15), 0 12px 18px rgba(15,157,88,.2);
+    }
+
+    .button-row {
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
+      margin-top:16px;
+    }
+
+    button {
+      border:0;
+      border-radius:16px;
+      padding:14px 16px;
+      font-size:17px;
+      font-weight:1000;
+      color:#fff;
+      cursor:pointer;
+      box-shadow:0 6px 0 rgba(0,0,0,.18), 0 12px 20px rgba(0,0,0,.12);
+    }
+
+    .start-btn {
+      grid-column:1/-1;
+      font-size:28px;
+      padding:18px 16px;
+      background:linear-gradient(#b9ff4e,#3fae12);
+      text-shadow:2px 2px 0 #24550a;
+      border:4px solid #2e6f0a;
+    }
+
+    .pause-btn { background:linear-gradient(#ffb347,#f57c00); }
+    .reset-btn { background:linear-gradient(#ff6b6b,#d93025); }
+    .mission-btn { background:linear-gradient(#3ccf7a,#0f9d58); }
+    .restart-btn { background:linear-gradient(#9b6cff,#6d35c9); }
+
+    .hint-box {
+      margin-top:14px;
+      padding:14px;
+      border-radius:16px;
+      background:#fff7df;
+      border:2px solid #ffe0a3;
+      color:#6b3a08;
+      font-weight:900;
+      line-height:1.45;
+    }
+
+    .values-grid {
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
+    }
+
+    .value-card {
+      border:2px solid #e3edf9;
+      background:#f7fbff;
+      border-radius:16px;
+      padding:12px;
+    }
+
+    .value-card b {
+      display:block;
+      color:var(--muted);
+      font-size:13px;
+      margin-bottom:4px;
+    }
+
+    .value-card span {
+      font-size:18px;
+      color:#0b3d7a;
+      font-weight:1000;
+    }
+
+    .explain-layout {
+      display:grid;
+      grid-template-columns:300px 1fr;
+      gap:16px;
+      align-items:center;
+    }
+
+    .diagram-box {
+      border:2px solid #e3edf9;
+      background:#fff7df;
+      border-radius:18px;
+      padding:12px;
+    }
+
+    #diagramCanvas {
+      width:100%;
+      height:190px;
+      display:block;
+    }
+
+    .formula-list {
+      margin:0;
+      padding:0;
+      list-style:none;
+      display:grid;
+      gap:8px;
+    }
+
+    .formula-list li {
+      background:#f7fbff;
+      border:1px solid #dbeafe;
+      padding:9px 12px;
+      border-radius:12px;
+      color:#0b55a4;
+      font-weight:900;
+      font-size:15px;
+    }
+
+    .learning-section {
+      display:grid;
+      grid-template-columns:repeat(2,1fr);
+      gap:18px;
+      margin-top:18px;
+    }
+
+    .learning-section ul,
+    .learning-section ol {
+      margin:0;
+      padding-left:22px;
+      line-height:1.65;
+      color:#39485c;
+    }
+
+    .learning-section p {
+      color:#39485c;
+      line-height:1.6;
+    }
+
+    footer {
+      text-align:center;
+      padding:10px 16px 32px;
+      color:#637083;
+      font-size:14px;
+    }
+
+    footer a {
+      color:#0b55a4;
+      font-weight:1000;
+      text-decoration:none;
+    }
+
+    footer a:hover { text-decoration:underline; }
+
+    @media(max-width:980px) {
+      .top-hud { grid-template-columns:repeat(2,1fr); }
+      .game-window { aspect-ratio:auto; min-height:440px; }
+      .workspace,
+      .learning-section,
+      .explain-layout { grid-template-columns:1fr; }
+      .values-grid { grid-template-columns:1fr; }
+      .button-row, .toggle-row { grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body>
+<header>
+  <h1>Logic Gate Puzzle Game</h1>
+  <p>NEET Physics sci-fi electronics game: choose the correct logic gate and input signals to unlock the space door</p>
+</header>
+
+<main class="app">
+  <section class="game-stage-card">
+    <div class="top-hud">
+      <div class="hud-box"><b>Score</b><span id="scoreText">0</span></div>
+      <div class="hud-box"><b>Level</b><span id="levelText">1</span></div>
+      <div class="hud-box"><b>High Score</b><span id="highScoreText">0</span></div>
+      <div class="hud-box"><b>Lives</b><span id="livesText">5</span></div>
+      <div class="hud-box"><b>Timer</b><span id="timerText">60s</span></div>
+    </div>
+
+    <div class="game-window">
+      <canvas id="gameCanvas" width="1280" height="640"></canvas>
+      <div class="game-message" id="messageBox">Ready: solve the logic pattern and unlock the gate.</div>
+      <div class="watermark">Dr AI Academy<br>AI Powered Physics Game Lab</div>
+    </div>
+  </section>
+
+  <section class="workspace">
+    <div class="card">
+      <div class="card-head"><h2>Puzzle Controls</h2></div>
+      <div class="card-body">
+        <div class="control-grid">
+          <div class="control-box">
+            <div class="control-title">Input A <span id="aValue">0</span></div>
+            <button class="toggle-btn" id="toggleA">Toggle A</button>
+          </div>
+
+          <div class="control-box">
+            <div class="control-title">Input B <span id="bValue">0</span></div>
+            <button class="toggle-btn" id="toggleB">Toggle B</button>
+          </div>
+
+          <div class="control-box">
+            <div class="control-title">Choose Gate <span id="gateValue">AND</span></div>
+            <select id="gateSelect">
+              <option value="AND" selected>AND Gate</option>
+              <option value="OR">OR Gate</option>
+              <option value="NOT">NOT Gate</option>
+              <option value="NAND">NAND Gate</option>
+              <option value="NOR">NOR Gate</option>
+              <option value="XOR">XOR Gate</option>
+            </select>
+          </div>
+
+          <div class="control-box">
+            <div class="control-title">Mission Difficulty <span id="difficultyValue">Basic</span></div>
+            <select id="difficultySelect">
+              <option value="basic" selected>Basic Gate Identification</option>
+              <option value="truth">Truth Table Challenge</option>
+              <option value="door">Space Door Output Match</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="button-row">
+          <button class="start-btn" id="checkBtn">CHECK LOGIC</button>
+          <button class="pause-btn" id="pauseBtn">Pause</button>
+          <button class="reset-btn" id="resetBtn">Reset Round</button>
+          <button class="mission-btn" id="newMissionBtn">New Mission</button>
+          <button class="restart-btn" id="restartBtn">Restart Game</button>
+        </div>
+
+        <div class="hint-box" id="hintBox">Goal: choose the gate that gives the required output for the shown input condition.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>Live Logic Values</h2></div>
+      <div class="card-body">
+        <div class="values-grid">
+          <div class="value-card"><b>Selected Gate Output</b><span id="outputValue">--</span></div>
+          <div class="value-card"><b>Target Output</b><span id="targetValue">--</span></div>
+          <div class="value-card"><b>Correct Gate</b><span id="correctGateValue">--</span></div>
+          <div class="value-card"><b>Boolean Expression</b><span id="expressionValue">--</span></div>
+          <div class="value-card"><b>Input Pattern</b><span id="patternValue">--</span></div>
+          <div class="value-card"><b>Mission Status</b><span id="statusValue">Ready</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" style="margin-top:18px;">
+    <div class="card-head"><h2>Logic Gate Diagram + Truth Rules</h2></div>
+    <div class="card-body explain-layout">
+      <div class="diagram-box">
+        <canvas id="diagramCanvas" width="300" height="190"></canvas>
+      </div>
+      <ul class="formula-list">
+        <li>AND gate: Y = A·B, output 1 only when both inputs are 1.</li>
+        <li>OR gate: Y = A + B, output 1 when at least one input is 1.</li>
+        <li>NOT gate: Y = A̅, output is opposite of input A.</li>
+        <li>NAND gate: Y = A·B̅ style idea, opposite of AND: Y = (A·B)'</li>
+        <li>NOR gate: opposite of OR: Y = (A + B)'</li>
+        <li>XOR gate: output 1 when inputs are different.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="learning-section">
+    <div class="card">
+      <div class="card-head"><h2>Simple Explanation</h2></div>
+      <div class="card-body">
+        <p>Logic gates are electronic circuits that give output based on input signals 0 and 1. In NEET, you must know the truth table and output behavior of AND, OR, NOT, NAND and NOR gates. This game trains you to identify the correct gate quickly.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>NEET Traps</h2></div>
+      <div class="card-body">
+        <ul>
+          <li>NAND is the opposite of AND, not the same as OR.</li>
+          <li>NOR is the opposite of OR.</li>
+          <li>NOT gate has only one input.</li>
+          <li>AND output is 1 only for A = 1 and B = 1.</li>
+          <li>OR output is 0 only for A = 0 and B = 0.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>Observation Questions</h2></div>
+      <div class="card-body">
+        <ol>
+          <li>For AND gate, when is output 1?</li>
+          <li>For OR gate, when is output 0?</li>
+          <li>What is the output of NAND when A = 1 and B = 1?</li>
+          <li>What does NOT gate do?</li>
+          <li>Why is NAND called a universal gate?</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>Learning Goal</h2></div>
+      <div class="card-body">
+        <ul>
+          <li>Memorize truth tables through gameplay.</li>
+          <li>Understand Boolean expressions.</li>
+          <li>Identify gates from input-output pattern.</li>
+          <li>Practice NEET electronics concepts quickly.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <a href="https://courses.draiacademy.com" target="_blank" rel="noopener">Dr AI Academy</a> | AI Powered Physics Game Lab
+</footer>
+
+<script>
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
+  const diagramCanvas = document.getElementById('diagramCanvas');
+  const dctx = diagramCanvas.getContext('2d');
+
+  const scoreText = document.getElementById('scoreText');
+  const levelText = document.getElementById('levelText');
+  const highScoreText = document.getElementById('highScoreText');
+  const livesText = document.getElementById('livesText');
+  const timerText = document.getElementById('timerText');
+  const messageBox = document.getElementById('messageBox');
+  const hintBox = document.getElementById('hintBox');
+
+  const toggleA = document.getElementById('toggleA');
+  const toggleB = document.getElementById('toggleB');
+  const gateSelect = document.getElementById('gateSelect');
+  const difficultySelect = document.getElementById('difficultySelect');
+
+  const aValue = document.getElementById('aValue');
+  const bValue = document.getElementById('bValue');
+  const gateValue = document.getElementById('gateValue');
+  const difficultyValue = document.getElementById('difficultyValue');
+
+  const outputValue = document.getElementById('outputValue');
+  const targetValue = document.getElementById('targetValue');
+  const correctGateValue = document.getElementById('correctGateValue');
+  const expressionValue = document.getElementById('expressionValue');
+  const patternValue = document.getElementById('patternValue');
+  const statusValue = document.getElementById('statusValue');
+
+  const checkBtn = document.getElementById('checkBtn');
+  const pauseBtn = document.getElementById('pauseBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const newMissionBtn = document.getElementById('newMissionBtn');
+  const restartBtn = document.getElementById('restartBtn');
+
+  let score = 0;
+  let level = 1;
+  let lives = 5;
+  let timer = 60;
+  let paused = false;
+  let running = true;
+  let lastTime = 0;
+  let message = 'Ready: solve the logic pattern and unlock the gate.';
+  let highScore = Number(localStorage.getItem('drAiLogicGatePuzzleHighScore') || 0);
+
+  let A = 0;
+  let B = 0;
+  let mission = null;
+  let particles = [];
+  let signalPhase = 0;
+
+  const starField = Array.from({ length: 95 }, () => ({
+    x: Math.random() * 1280,
+    y: Math.random() * 640,
+    r: Math.random() * 1.7 + 0.4,
+    tw: Math.random() * 2 + 0.5
+  }));
+
+  function random(min, max) { return Math.random() * (max - min) + min; }
+
+  function gateOutput(gate, a, b) {
+    if (gate === 'AND') return a && b ? 1 : 0;
+    if (gate === 'OR') return a || b ? 1 : 0;
+    if (gate === 'NOT') return a ? 0 : 1;
+    if (gate === 'NAND') return !(a && b) ? 1 : 0;
+    if (gate === 'NOR') return !(a || b) ? 1 : 0;
+    if (gate === 'XOR') return a !== b ? 1 : 0;
+    return 0;
+  }
+
+  function gateExpression(gate) {
+    const map = {
+      AND: 'Y = A·B',
+      OR: 'Y = A + B',
+      NOT: 'Y = A̅',
+      NAND: "Y = (A·B)'",
+      NOR: "Y = (A+B)'",
+      XOR: 'Y = A ⊕ B'
+    };
+    return map[gate] || '--';
+  }
+
+  function makeMission() {
+    const gates = ['AND', 'OR', 'NOT', 'NAND', 'NOR', 'XOR'];
+    const correct = gates[Math.floor(random(0, gates.length))];
+    const a = Math.round(random(0, 1));
+    const b = Math.round(random(0, 1));
+    const target = gateOutput(correct, a, b);
+    A = a;
+    B = b;
+    mission = {
+      correctGate: correct,
+      target,
+      inputA: a,
+      inputB: b,
+      difficulty: difficultySelect.value
+    };
+    message = 'New mission: match the target output.';
+  }
+
+  function getCurrent() {
+    const selectedGate = gateSelect.value;
+    const selectedOutput = gateOutput(selectedGate, A, B);
+    const target = mission ? mission.target : 0;
+    const correctGate = mission ? mission.correctGate : 'AND';
+    const isCorrect = selectedGate === correctGate && selectedOutput === target;
+    return { selectedGate, selectedOutput, target, correctGate, isCorrect };
+  }
+
+  function updateUI() {
+    const cur = getCurrent();
+    scoreText.textContent = score;
+    levelText.textContent = level;
+    highScoreText.textContent = highScore;
+    livesText.textContent = lives;
+    timerText.textContent = Math.ceil(timer) + 's';
+    messageBox.textContent = message;
+
+    aValue.textContent = A;
+    bValue.textContent = B;
+    gateValue.textContent = cur.selectedGate;
+    difficultyValue.textContent = difficultySelect.options[difficultySelect.selectedIndex].text.split(' ')[0];
+
+    toggleA.textContent = 'A = ' + A;
+    toggleB.textContent = 'B = ' + B;
+    toggleA.classList.toggle('active', A === 1);
+    toggleB.classList.toggle('active', B === 1);
+
+    outputValue.textContent = cur.selectedOutput;
+    targetValue.textContent = cur.target;
+    correctGateValue.textContent = cur.correctGate;
+    expressionValue.textContent = gateExpression(cur.selectedGate);
+    patternValue.textContent = 'A=' + A + ', B=' + B;
+    statusValue.textContent = cur.isCorrect ? 'Ready to unlock' : 'Try another gate';
+
+    if (cur.selectedGate === 'NOT') {
+      hintBox.textContent = 'NOT gate uses only input A. It gives opposite output of A.';
+    } else if (cur.selectedOutput === cur.target) {
+      hintBox.textContent = 'Output matches target. But check if selected gate is the required correct gate.';
+    } else {
+      hintBox.textContent = 'Output does not match target. Try changing gate or inputs according to the mission.';
+    }
+  }
+
+  function drawBackground(time) {
+    const grad = ctx.createRadialGradient(640, 310, 40, 640, 310, 820);
+    grad.addColorStop(0, '#123c8c');
+    grad.addColorStop(0.45, '#071a45');
+    grad.addColorStop(1, '#020716');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.save();
+    starField.forEach(s => {
+      ctx.globalAlpha = 0.35 + 0.45 * Math.sin(time * 0.002 * s.tw + s.x);
+      ctx.fillStyle = '#dff7ff';
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    ctx.restore();
+
+    ctx.strokeStyle = 'rgba(83,212,255,.12)';
+    ctx.lineWidth = 1;
+    for (let x = 80; x < 1240; x += 80) {
+      ctx.beginPath();
+      ctx.moveTo(x, 95);
+      ctx.lineTo(x, 550);
+      ctx.stroke();
+    }
+    for (let y = 110; y < 560; y += 70) {
+      ctx.beginPath();
+      ctx.moveTo(70, y);
+      ctx.lineTo(1210, y);
+      ctx.stroke();
+    }
+  }
+
+  function drawArena() {
+    ctx.save();
+    ctx.fillStyle = 'rgba(83,212,255,.08)';
+    ctx.strokeStyle = 'rgba(83,212,255,.75)';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.roundRect(75, 92, 1130, 460, 26);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = '#fff2cc';
+    ctx.font = 'bold 18px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('LOGIC GATE PUZZLE ARENA', 640, 72);
+    ctx.restore();
+  }
+
+  function drawInputNodes() {
+    drawNode(170, 235, 'A', A, '#53d4ff');
+    drawNode(170, 405, 'B', B, '#ffdf3f');
+  }
+
+  function drawNode(x, y, label, value, color) {
+    ctx.save();
+    const glow = value ? color : 'rgba(255,255,255,.25)';
+    const grad = ctx.createRadialGradient(x, y, 8, x, y, 56);
+    grad.addColorStop(0, value ? '#ffffff' : '#3b4a65');
+    grad.addColorStop(0.35, glow);
+    grad.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(x, y, 56, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = value ? color : '#27354d';
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.arc(x, y, 34, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 18px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(label + '=' + value, x, y + 6);
+    ctx.restore();
+  }
+
+  function drawWires() {
+    const cur = getCurrent();
+    const activeColorA = A ? '#53d4ff' : 'rgba(223,247,255,.35)';
+    const activeColorB = B ? '#ffdf3f' : 'rgba(223,247,255,.35)';
+    drawWire(205, 235, 460, 280, activeColorA);
+    if (cur.selectedGate !== 'NOT') drawWire(205, 405, 460, 360, activeColorB);
+    else drawWire(205, 405, 330, 405, 'rgba(223,247,255,.15)');
+
+    const outColor = cur.selectedOutput ? '#53ff9e' : 'rgba(223,247,255,.35)';
+    drawWire(635, 320, 960, 320, outColor);
+  }
+
+  function drawWire(x1, y1, x2, y2, color) {
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 7;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawSelectedGate() {
+    const gate = gateSelect.value;
+    ctx.save();
+    ctx.translate(530, 320);
+
+    ctx.fillStyle = 'rgba(255,255,255,.12)';
+    ctx.strokeStyle = '#dff7ff';
+    ctx.lineWidth = 4;
+
+    if (gate === 'AND' || gate === 'NAND') {
+      ctx.beginPath();
+      ctx.moveTo(-70, -70);
+      ctx.lineTo(-10, -70);
+      ctx.quadraticCurveTo(80, 0, -10, 70);
+      ctx.lineTo(-70, 70);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+      if (gate === 'NAND') drawBubble(88, 0);
+    } else if (gate === 'OR' || gate === 'NOR' || gate === 'XOR') {
+      ctx.beginPath();
+      ctx.moveTo(-78, -70);
+      ctx.quadraticCurveTo(-20, 0, -78, 70);
+      ctx.quadraticCurveTo(25, 60, 86, 0);
+      ctx.quadraticCurveTo(25, -60, -78, -70);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+      if (gate === 'XOR') {
+        ctx.beginPath();
+        ctx.moveTo(-95, -63);
+        ctx.quadraticCurveTo(-40, 0, -95, 63);
+        ctx.stroke();
+      }
+      if (gate === 'NOR') drawBubble(95, 0);
+    } else if (gate === 'NOT') {
+      ctx.beginPath();
+      ctx.moveTo(-70, -70);
+      ctx.lineTo(70, 0);
+      ctx.lineTo(-70, 70);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+      drawBubble(88, 0);
+    }
+
+    ctx.fillStyle = '#fff2cc';
+    ctx.font = 'bold 24px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(gate, 0, 8);
+    ctx.font = 'bold 14px Arial';
+    ctx.fillText(gateExpression(gate), 0, 104);
+    ctx.restore();
+  }
+
+  function drawBubble(x, y) {
+    ctx.fillStyle = '#06122b';
+    ctx.strokeStyle = '#dff7ff';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.arc(x, y, 13, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+  }
+
+  function drawOutputDoor() {
+    const cur = getCurrent();
+    const isOpen = cur.isCorrect;
+    ctx.save();
+
+    const x = 1040, y = 320;
+    const glow = isOpen ? 'rgba(83,255,158,.55)' : 'rgba(255,101,59,.35)';
+    const grad = ctx.createRadialGradient(x, y, 8, x, y, 100);
+    grad.addColorStop(0, 'rgba(255,255,255,.9)');
+    grad.addColorStop(0.4, glow);
+    grad.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(x, y, 105, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = isOpen ? 'rgba(83,255,158,.2)' : 'rgba(255,101,59,.2)';
+    ctx.strokeStyle = isOpen ? '#53ff9e' : '#ff653b';
+    ctx.lineWidth = 7;
+    ctx.beginPath();
+    ctx.roundRect(x - 70, y - 95, 140, 190, 18);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = '#dff7ff';
+    ctx.font = 'bold 16px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(isOpen ? 'DOOR OPEN' : 'LOCKED', x, y - 20);
+    ctx.fillText('Y = ' + cur.selectedOutput, x, y + 8);
+    ctx.fillText('TARGET = ' + cur.target, x, y + 36);
+    ctx.restore();
+  }
+
+  function drawMissionPanel() {
+    if (!mission) return;
+    ctx.save();
+    ctx.fillStyle = 'rgba(255,255,255,.09)';
+    ctx.strokeStyle = 'rgba(255,255,255,.28)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.roundRect(780, 115, 350, 95, 16);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = '#fff2cc';
+    ctx.font = 'bold 16px Arial';
+    ctx.textAlign = 'left';
+    ctx.fillText('Mission Pattern', 805, 145);
+    ctx.font = 'bold 14px Arial';
+    ctx.fillText('Find gate for A=' + A + ', B=' + B + ', Target Y=' + mission.target, 805, 174);
+    ctx.fillText('Correct gate hidden in puzzle logic', 805, 196);
+    ctx.restore();
+  }
+
+  function drawSignalParticles() {
+    const cur = getCurrent();
+    signalPhase += 0.008;
+    const count = 8;
+    ctx.save();
+    for (let i = 0; i < count; i++) {
+      const t = (signalPhase + i / count) % 1;
+      if (A) drawMovingDot(205, 235, 460, 280, t, '#53d4ff');
+      if (B && cur.selectedGate !== 'NOT') drawMovingDot(205, 405, 460, 360, t, '#ffdf3f');
+      if (cur.selectedOutput) drawMovingDot(635, 320, 960, 320, t, '#53ff9e');
+    }
+    ctx.restore();
+  }
+
+  function drawMovingDot(x1, y1, x2, y2, t, color) {
+    const x = x1 + (x2 - x1) * t;
+    const y = y1 + (y2 - y1) * t;
+    ctx.fillStyle = color;
+    ctx.shadowColor = color;
+    ctx.shadowBlur = 9;
+    ctx.beginPath();
+    ctx.arc(x, y, 5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+  }
+
+  function checkLogic() {
+    const cur = getCurrent();
+    if (cur.isCorrect) {
+      score += 100;
+      level = Math.floor(score / 300) + 1;
+      highScore = Math.max(highScore, score);
+      localStorage.setItem('drAiLogicGatePuzzleHighScore', String(highScore));
+      message = 'Correct! Space door unlocked. +100';
+      explode(1040, 320, '#53ff9e');
+      makeMission();
+    } else {
+      lives -= 1;
+      message = lives > 0 ? 'Wrong logic! Study the truth table and try again.' : 'Game Over';
+      explode(1040, 320, '#ff653b');
+    }
+  }
+
+  function explode(x, y, color) {
+    for (let i = 0; i < 36; i++) {
+      particles.push({
+        x,
+        y,
+        vx: random(-230, 230),
+        vy: random(-230, 230),
+        life: 1,
+        color
+      });
+    }
+  }
+
+  function updateParticles(dt) {
+    particles.forEach(p => {
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+      p.life -= dt * 1.2;
+    });
+    particles = particles.filter(p => p.life > 0);
+  }
+
+  function drawParticles() {
+    ctx.save();
+    particles.forEach(p => {
+      ctx.globalAlpha = Math.max(0, p.life);
+      ctx.fillStyle = p.color;
+      ctx.shadowColor = p.color;
+      ctx.shadowBlur = 8;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 7 * p.life, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    ctx.restore();
+  }
+
+  function updateGame(dt) {
+    if (!paused && lives > 0) {
+      timer = Math.max(0, timer - dt);
+      updateParticles(dt);
+    }
+    if (timer <= 0 && lives > 0) {
+      lives -= 1;
+      timer = 60;
+      message = lives > 0 ? 'Time penalty! New mission loaded.' : 'Game Over';
+      makeMission();
+    }
+  }
+
+  function resetRound() {
+    timer = 60;
+    paused = false;
+    message = 'Round reset.';
+    makeMission();
+    pauseBtn.textContent = 'Pause';
+  }
+
+  function restartGame() {
+    score = 0;
+    level = 1;
+    lives = 5;
+    timer = 60;
+    particles = [];
+    paused = false;
+    message = 'New game started.';
+    makeMission();
+    pauseBtn.textContent = 'Pause';
+  }
+
+  function drawDiagram() {
+    const gate = gateSelect.value;
+    dctx.clearRect(0, 0, diagramCanvas.width, diagramCanvas.height);
+    dctx.fillStyle = '#fff7df';
+    dctx.fillRect(0, 0, diagramCanvas.width, diagramCanvas.height);
+
+    dctx.fillStyle = '#102033';
+    dctx.font = 'bold 13px Arial';
+    dctx.textAlign = 'center';
+    dctx.fillText('Truth rule: ' + gateExpression(gate), 150, 22);
+
+    dctx.strokeStyle = '#0b55a4';
+    dctx.lineWidth = 3;
+    dctx.beginPath();
+    dctx.moveTo(40, 75);
+    dctx.lineTo(110, 75);
+    dctx.moveTo(40, 115);
+    dctx.lineTo(110, 115);
+    dctx.moveTo(190, 95);
+    dctx.lineTo(260, 95);
+    dctx.stroke();
+
+    dctx.save();
+    dctx.translate(150, 95);
+    dctx.fillStyle = '#dff7ff';
+    dctx.strokeStyle = '#102033';
+    dctx.lineWidth = 3;
+    dctx.beginPath();
+    dctx.roundRect(-42, -34, 84, 68, 18);
+    dctx.fill();
+    dctx.stroke();
+    dctx.fillStyle = '#102033';
+    dctx.font = 'bold 16px Arial';
+    dctx.fillText(gate, 0, 6);
+    dctx.restore();
+
+    dctx.fillStyle = '#102033';
+    dctx.font = 'bold 12px Arial';
+    dctx.fillText('A', 32, 79);
+    dctx.fillText('B', 32, 119);
+    dctx.fillText('Y', 270, 99);
+
+    const rows = [[0,0],[0,1],[1,0],[1,1]];
+    dctx.font = 'bold 11px Arial';
+    rows.forEach((r, i) => {
+      const y = 148 + i * 10;
+      dctx.fillText(r[0] + ' ' + r[1] + ' → ' + gateOutput(gate, r[0], r[1]), 150, y);
+    });
+  }
+
+  function gameLoop(timestamp) {
+    if (!lastTime) lastTime = timestamp;
+    const dt = Math.min(0.04, (timestamp - lastTime) / 1000);
+    lastTime = timestamp;
+
+    updateGame(dt);
+    updateUI();
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawBackground(timestamp);
+    drawArena();
+    drawMissionPanel();
+    drawInputNodes();
+    drawWires();
+    drawSignalParticles();
+    drawSelectedGate();
+    drawOutputDoor();
+    drawParticles();
+    drawDiagram();
+
+    requestAnimationFrame(gameLoop);
+  }
+
+  toggleA.addEventListener('click', () => { A = A ? 0 : 1; message = 'Input A changed.'; });
+  toggleB.addEventListener('click', () => { B = B ? 0 : 1; message = 'Input B changed.'; });
+  gateSelect.addEventListener('change', () => { message = 'Gate selected: ' + gateSelect.value; });
+  difficultySelect.addEventListener('change', () => { makeMission(); message = 'Difficulty changed. New mission loaded.'; });
+
+  checkBtn.addEventListener('click', checkLogic);
+  pauseBtn.addEventListener('click', () => {
+    paused = !paused;
+    pauseBtn.textContent = paused ? 'Resume' : 'Pause';
+    message = paused ? 'Paused' : 'Ready';
+  });
+  resetBtn.addEventListener('click', resetRound);
+  newMissionBtn.addEventListener('click', () => { makeMission(); timer = 60; message = 'New logic mission generated.'; });
+  restartBtn.addEventListener('click', restartGame);
+
+  makeMission();
+  updateUI();
+  drawDiagram();
+  requestAnimationFrame(gameLoop);
+</script>
+</body>
+</html>

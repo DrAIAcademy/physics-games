@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Circular Motion Space Track Game | Dr AI Academy</title>
+  <style>
+    :root {
+      --panel:#ffffff;
+      --ink:#102033;
+      --muted:#637083;
+      --blue:#1769ff;
+      --green:#0f9d58;
+      --orange:#f57c00;
+      --red:#d93025;
+      --purple:#7b1fa2;
+      --line:#dbe6f6;
+      --soft:#f7fbff;
+      --shadow:0 14px 30px rgba(16,32,51,.14);
+    }
+
+    * { box-sizing:border-box; }
+
+    body {
+      margin:0;
+      font-family:"Trebuchet MS", Arial, sans-serif;
+      background:linear-gradient(180deg,#edf7ff,#ffffff);
+      color:var(--ink);
+    }
+
+    header {
+      text-align:center;
+      padding:22px 16px;
+      color:#fff;
+      background:linear-gradient(135deg,#061d49,#0d6efd);
+    }
+
+    header h1 {
+      margin:0 0 8px;
+      font-size:clamp(26px,4vw,44px);
+      font-weight:1000;
+    }
+
+    header p {
+      margin:0;
+      opacity:.95;
+      font-size:16px;
+    }
+
+    .app {
+      max-width:1280px;
+      margin:22px auto 34px;
+      padding:0 16px;
+    }
+
+    .game-stage-card {
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:24px;
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+
+    .top-hud {
+      display:grid;
+      grid-template-columns:repeat(5,1fr);
+      gap:10px;
+      padding:14px;
+      background:linear-gradient(180deg,#ffffff,#f4f9ff);
+      border-bottom:1px solid var(--line);
+    }
+
+    .hud-box {
+      border:2px solid #dbeafe;
+      border-radius:16px;
+      background:linear-gradient(180deg,#ffffff,#eef7ff);
+      padding:10px 12px;
+      text-align:center;
+    }
+
+    .hud-box b {
+      display:block;
+      color:var(--muted);
+      font-size:13px;
+      margin-bottom:4px;
+    }
+
+    .hud-box span {
+      font-size:24px;
+      color:#0b3d7a;
+      font-weight:1000;
+    }
+
+    .game-window {
+      position:relative;
+      width:100%;
+      aspect-ratio:16/8.2;
+      min-height:520px;
+      background:#06122b;
+    }
+
+    canvas#gameCanvas {
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+      display:block;
+      z-index:1;
+    }
+
+    .game-message {
+      position:absolute;
+      left:50%;
+      bottom:18px;
+      transform:translateX(-50%);
+      min-width:340px;
+      max-width:82%;
+      text-align:center;
+      background:rgba(10,18,45,.92);
+      border:3px solid rgba(255,255,255,.35);
+      border-radius:999px;
+      color:#fff2cc;
+      padding:10px 22px;
+      font-weight:1000;
+      font-size:20px;
+      z-index:2;
+      box-shadow:0 8px 20px rgba(0,0,0,.18);
+      pointer-events:none;
+    }
+
+    .watermark {
+      position:absolute;
+      right:18px;
+      bottom:18px;
+      color:rgba(255,255,255,.78);
+      text-align:right;
+      font-weight:900;
+      text-shadow:1px 1px 3px rgba(0,0,0,.35);
+      z-index:2;
+      pointer-events:none;
+    }
+
+    .workspace {
+      display:grid;
+      grid-template-columns:1.1fr .9fr;
+      gap:18px;
+      margin-top:18px;
+    }
+
+    .card {
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:22px;
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+
+    .card-head {
+      padding:16px 18px;
+      background:linear-gradient(180deg,#ffffff,#f4f9ff);
+      border-bottom:1px solid var(--line);
+    }
+
+    .card-head h2 {
+      margin:0;
+      font-size:22px;
+      color:#102033;
+    }
+
+    .card-body { padding:18px; }
+
+    .control-grid {
+      display:grid;
+      grid-template-columns:1fr;
+      gap:14px;
+    }
+
+    .control-box {
+      border:2px solid #e3edf9;
+      background:linear-gradient(180deg,#ffffff,#f7fbff);
+      border-radius:18px;
+      padding:14px;
+    }
+
+    .control-title {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      margin-bottom:10px;
+      font-weight:1000;
+      color:#243244;
+      font-size:18px;
+    }
+
+    .control-title span {
+      min-width:104px;
+      text-align:center;
+      color:#0b55a4;
+      background:#eaf4ff;
+      border:2px solid #cfe4ff;
+      padding:6px 10px;
+      border-radius:12px;
+      font-weight:1000;
+    }
+
+    input[type="range"] {
+      width:100%;
+      accent-color:var(--blue);
+      cursor:pointer;
+    }
+
+    .button-row {
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
+      margin-top:16px;
+    }
+
+    button {
+      border:0;
+      border-radius:16px;
+      padding:14px 16px;
+      font-size:17px;
+      font-weight:1000;
+      color:#fff;
+      cursor:pointer;
+      box-shadow:0 6px 0 rgba(0,0,0,.18), 0 12px 20px rgba(0,0,0,.12);
+    }
+
+    .start-btn {
+      grid-column:1/-1;
+      font-size:28px;
+      padding:18px 16px;
+      background:linear-gradient(#b9ff4e,#3fae12);
+      text-shadow:2px 2px 0 #24550a;
+      border:4px solid #2e6f0a;
+    }
+
+    .pause-btn { background:linear-gradient(#ffb347,#f57c00); }
+    .reset-btn { background:linear-gradient(#ff6b6b,#d93025); }
+    .mission-btn { background:linear-gradient(#3ccf7a,#0f9d58); }
+    .restart-btn { background:linear-gradient(#9b6cff,#6d35c9); }
+
+    .hint-box {
+      margin-top:14px;
+      padding:14px;
+      border-radius:16px;
+      background:#fff7df;
+      border:2px solid #ffe0a3;
+      color:#6b3a08;
+      font-weight:900;
+      line-height:1.45;
+    }
+
+    .values-grid {
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
+    }
+
+    .value-card {
+      border:2px solid #e3edf9;
+      background:#f7fbff;
+      border-radius:16px;
+      padding:12px;
+    }
+
+    .value-card b {
+      display:block;
+      color:var(--muted);
+      font-size:13px;
+      margin-bottom:4px;
+    }
+
+    .value-card span {
+      font-size:18px;
+      color:#0b3d7a;
+      font-weight:1000;
+    }
+
+    .explain-layout {
+      display:grid;
+      grid-template-columns:300px 1fr;
+      gap:16px;
+      align-items:center;
+    }
+
+    .diagram-box {
+      border:2px solid #e3edf9;
+      background:#fff7df;
+      border-radius:18px;
+      padding:12px;
+    }
+
+    #diagramCanvas {
+      width:100%;
+      height:190px;
+      display:block;
+    }
+
+    .formula-list {
+      margin:0;
+      padding:0;
+      list-style:none;
+      display:grid;
+      gap:8px;
+    }
+
+    .formula-list li {
+      background:#f7fbff;
+      border:1px solid #dbeafe;
+      padding:9px 12px;
+      border-radius:12px;
+      color:#0b55a4;
+      font-weight:900;
+      font-size:15px;
+    }
+
+    .learning-section {
+      display:grid;
+      grid-template-columns:repeat(2,1fr);
+      gap:18px;
+      margin-top:18px;
+    }
+
+    .learning-section ul,
+    .learning-section ol {
+      margin:0;
+      padding-left:22px;
+      line-height:1.65;
+      color:#39485c;
+    }
+
+    .learning-section p {
+      color:#39485c;
+      line-height:1.6;
+    }
+
+    footer {
+      text-align:center;
+      padding:10px 16px 32px;
+      color:#637083;
+      font-size:14px;
+    }
+
+    footer a {
+      color:#0b55a4;
+      font-weight:1000;
+      text-decoration:none;
+    }
+
+    footer a:hover { text-decoration:underline; }
+
+    @media(max-width:980px) {
+      .top-hud { grid-template-columns:repeat(2,1fr); }
+      .game-window { aspect-ratio:auto; min-height:440px; }
+      .workspace,
+      .learning-section,
+      .explain-layout { grid-template-columns:1fr; }
+      .values-grid { grid-template-columns:1fr; }
+      .button-row { grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body>
+<header>
+  <h1>Circular Motion Space Track</h1>
+  <p>NEET Physics sci-fi game: control speed and friction to keep the spacecraft safely on a circular track</p>
+</header>
+
+<main class="app">
+  <section class="game-stage-card">
+    <div class="top-hud">
+      <div class="hud-box"><b>Score</b><span id="scoreText">0</span></div>
+      <div class="hud-box"><b>Level</b><span id="levelText">1</span></div>
+      <div class="hud-box"><b>High Score</b><span id="highScoreText">0</span></div>
+      <div class="hud-box"><b>Lives</b><span id="livesText">5</span></div>
+      <div class="hud-box"><b>Timer</b><span id="timerText">60s</span></div>
+    </div>
+
+    <div class="game-window">
+      <canvas id="gameCanvas" width="1280" height="640"></canvas>
+      <div class="game-message" id="messageBox">Ready: adjust speed, radius and friction.</div>
+      <div class="watermark">Dr AI Academy<br>AI Powered Physics Game Lab</div>
+    </div>
+  </section>
+
+  <section class="workspace">
+    <div class="card">
+      <div class="card-head"><h2>Mission Controls</h2></div>
+      <div class="card-body">
+        <div class="control-grid">
+          <div class="control-box">
+            <div class="control-title">Spacecraft Speed v <span id="speedValue">18 m/s</span></div>
+            <input id="speed" type="range" min="4" max="48" step="1" value="18" />
+          </div>
+
+          <div class="control-box">
+            <div class="control-title">Track Radius r <span id="radiusValue">45 m</span></div>
+            <input id="radius" type="range" min="20" max="80" step="1" value="45" />
+          </div>
+
+          <div class="control-box">
+            <div class="control-title">Friction / Grip μ <span id="muValue">0.70</span></div>
+            <input id="mu" type="range" min="0.05" max="1.2" step="0.01" value="0.70" />
+          </div>
+
+          <div class="control-box">
+            <div class="control-title">Spacecraft Mass m <span id="massValue">600 kg</span></div>
+            <input id="mass" type="range" min="100" max="2000" step="50" value="600" />
+          </div>
+        </div>
+
+        <div class="button-row">
+          <button class="start-btn" id="startBtn">START ORBIT</button>
+          <button class="pause-btn" id="pauseBtn">Pause</button>
+          <button class="reset-btn" id="resetBtn">Reset Mission</button>
+          <button class="mission-btn" id="newMissionBtn">New Mission</button>
+          <button class="restart-btn" id="restartBtn">Restart Game</button>
+        </div>
+
+        <div class="hint-box" id="hintBox">Goal: Keep speed less than or equal to maximum safe speed so the spacecraft does not skid outward.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>Live Physics Values</h2></div>
+      <div class="card-body">
+        <div class="values-grid">
+          <div class="value-card"><b>Centripetal Acceleration</b><span id="accValue">--</span></div>
+          <div class="value-card"><b>Centripetal Force</b><span id="forceValue">--</span></div>
+          <div class="value-card"><b>Maximum Safe Speed</b><span id="vmaxValue">--</span></div>
+          <div class="value-card"><b>Angular Velocity</b><span id="omegaValue">--</span></div>
+          <div class="value-card"><b>Time Period</b><span id="periodValue">--</span></div>
+          <div class="value-card"><b>Mission Status</b><span id="statusValue">--</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" style="margin-top:18px;">
+    <div class="card-head"><h2>Circular Motion Diagram + Formulas</h2></div>
+    <div class="card-body explain-layout">
+      <div class="diagram-box">
+        <canvas id="diagramCanvas" width="300" height="190"></canvas>
+      </div>
+      <ul class="formula-list">
+        <li>Centripetal acceleration: a = v² / r</li>
+        <li>Centripetal force: F = mv² / r</li>
+        <li>Angular velocity: ω = v / r</li>
+        <li>Time period: T = 2πr / v</li>
+        <li>Maximum safe speed on level track: vmax = √(μrg)</li>
+        <li>If v > vmax, friction is not enough and object skids outward.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="learning-section">
+    <div class="card">
+      <div class="card-head"><h2>Simple Explanation</h2></div>
+      <div class="card-body">
+        <p>In circular motion, velocity direction changes continuously, so acceleration is present even if speed is constant. On a level circular track, friction provides the required centripetal force. If speed is too high, friction cannot provide enough inward force and the spacecraft skids outward.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>NEET Traps</h2></div>
+      <div class="card-body">
+        <ul>
+          <li>Centripetal force is inward, not outward.</li>
+          <li>Constant speed does not mean zero acceleration.</li>
+          <li>On a level road/track, friction provides centripetal force.</li>
+          <li>Maximum safe speed is independent of mass because mass cancels.</li>
+          <li>If the string breaks, the object moves tangentially, not radially outward.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>Observation Questions</h2></div>
+      <div class="card-body">
+        <ol>
+          <li>What happens to centripetal force when speed is doubled?</li>
+          <li>What happens to acceleration when radius increases?</li>
+          <li>Why does object accelerate even at constant speed?</li>
+          <li>Why does increasing μ increase safe speed?</li>
+          <li>Why does vmax not depend on mass?</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>Learning Goal</h2></div>
+      <div class="card-body">
+        <ul>
+          <li>Visualize tangential velocity and inward acceleration.</li>
+          <li>Compare actual speed with safe speed.</li>
+          <li>Understand why vehicles skid on turns.</li>
+          <li>Connect circular motion formulas with gameplay.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <a href="https://courses.draiacademy.com" target="_blank" rel="noopener">Dr AI Academy</a> | AI Powered Physics Game Lab
+</footer>
+
+<script>
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
+  const diagramCanvas = document.getElementById('diagramCanvas');
+  const dctx = diagramCanvas.getContext('2d');
+
+  const speedEl = document.getElementById('speed');
+  const radiusEl = document.getElementById('radius');
+  const muEl = document.getElementById('mu');
+  const massEl = document.getElementById('mass');
+
+  const speedValue = document.getElementById('speedValue');
+  const radiusValue = document.getElementById('radiusValue');
+  const muValue = document.getElementById('muValue');
+  const massValue = document.getElementById('massValue');
+
+  const scoreText = document.getElementById('scoreText');
+  const levelText = document.getElementById('levelText');
+  const highScoreText = document.getElementById('highScoreText');
+  const livesText = document.getElementById('livesText');
+  const timerText = document.getElementById('timerText');
+  const messageBox = document.getElementById('messageBox');
+  const hintBox = document.getElementById('hintBox');
+
+  const accValue = document.getElementById('accValue');
+  const forceValue = document.getElementById('forceValue');
+  const vmaxValue = document.getElementById('vmaxValue');
+  const omegaValue = document.getElementById('omegaValue');
+  const periodValue = document.getElementById('periodValue');
+  const statusValue = document.getElementById('statusValue');
+
+  const startBtn = document.getElementById('startBtn');
+  const pauseBtn = document.getElementById('pauseBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const newMissionBtn = document.getElementById('newMissionBtn');
+  const restartBtn = document.getElementById('restartBtn');
+
+  let score = 0;
+  let level = 1;
+  let lives = 5;
+  let timer = 60;
+  let paused = false;
+  let running = false;
+  let lastTime = 0;
+  let shipAngle = -Math.PI / 2;
+  let skid = false;
+  let skidDistance = 0;
+  let particles = [];
+  let message = 'Ready: adjust speed, radius and friction.';
+  let highScore = Number(localStorage.getItem('drAiCircularSpaceTrackHighScore') || 0);
+  let stars = [];
+
+  const world = {
+    cx: 640,
+    cy: 325,
+    trackScale: 4.1
+  };
+
+  const starField = Array.from({length:95}, () => ({
+    x: Math.random() * 1280,
+    y: Math.random() * 640,
+    r: Math.random() * 1.8 + 0.5,
+    tw: Math.random() * 1.5 + 0.5
+  }));
+
+  function random(min, max) {
+    return Math.random() * (max - min) + min;
+  }
+
+  function format(num, unit) {
+    return Number.isFinite(num) ? num.toFixed(2) + ' ' + unit : '--';
+  }
+
+  function getInput() {
+    const v = Number(speedEl.value);
+    const r = Number(radiusEl.value);
+    const mu = Number(muEl.value);
+    const m = Number(massEl.value);
+    const g = 9.8;
+    const acc = v * v / r;
+    const force = m * acc;
+    const vmax = Math.sqrt(mu * r * g);
+    const omega = v / r;
+    const period = 2 * Math.PI * r / v;
+    const status = v <= vmax ? 'Safe turn' : 'Skids outward';
+    return { v, r, mu, m, g, acc, force, vmax, omega, period, status };
+  }
+
+  function trackRadiusPx() {
+    return Number(radiusEl.value) * world.trackScale;
+  }
+
+  function updateUI() {
+    const input = getInput();
+    speedValue.textContent = input.v + ' m/s';
+    radiusValue.textContent = input.r + ' m';
+    muValue.textContent = input.mu.toFixed(2);
+    massValue.textContent = input.m + ' kg';
+
+    scoreText.textContent = score;
+    levelText.textContent = level;
+    highScoreText.textContent = highScore;
+    livesText.textContent = lives;
+    timerText.textContent = Math.ceil(timer) + 's';
+    messageBox.textContent = message;
+
+    accValue.textContent = format(input.acc, 'm/s²');
+    forceValue.textContent = format(input.force, 'N');
+    vmaxValue.textContent = format(input.vmax, 'm/s');
+    omegaValue.textContent = format(input.omega, 'rad/s');
+    periodValue.textContent = format(input.period, 's');
+    statusValue.textContent = input.status;
+
+    if (input.v <= input.vmax * 0.92) {
+      hintBox.textContent = 'Safe zone. Increase speed carefully or keep the spacecraft stable for more score.';
+    } else if (input.v <= input.vmax) {
+      hintBox.textContent = 'Excellent challenge zone. Speed is close to maximum safe speed.';
+    } else {
+      hintBox.textContent = 'Danger! Speed is greater than maximum safe speed. Spacecraft will skid outward.';
+    }
+  }
+
+  function generateStars() {
+    stars = [];
+    for (let i = 0; i < 5; i++) {
+      stars.push({ angle: random(0, Math.PI * 2), taken: false });
+    }
+  }
+
+  function drawBackground(time) {
+    const grad = ctx.createRadialGradient(640, 310, 40, 640, 310, 780);
+    grad.addColorStop(0, '#123c8c');
+    grad.addColorStop(0.42, '#071a45');
+    grad.addColorStop(1, '#020716');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.save();
+    starField.forEach(s => {
+      ctx.globalAlpha = 0.35 + 0.45 * Math.sin(time * 0.002 * s.tw + s.x);
+      ctx.fillStyle = '#dff7ff';
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    ctx.restore();
+
+    drawPlanet(170, 120, 70, '#c47bff', '#f0d4ff');
+    drawPlanet(1080, 120, 44, '#ffb36b', '#ffe0a4');
+  }
+
+  function drawPlanet(x, y, r, c1, c2) {
+    const grad = ctx.createRadialGradient(x - 16, y - 18, 8, x, y, r);
+    grad.addColorStop(0, c2);
+    grad.addColorStop(1, c1);
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  function drawTrack() {
+    const R = trackRadiusPx();
+    const input = getInput();
+
+    ctx.save();
+    ctx.strokeStyle = input.v <= input.vmax ? 'rgba(83,212,255,.95)' : 'rgba(255,82,82,.95)';
+    ctx.lineWidth = 26;
+    ctx.beginPath();
+    ctx.arc(world.cx, world.cy, R, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.strokeStyle = 'rgba(255,255,255,.55)';
+    ctx.lineWidth = 3;
+    ctx.setLineDash([12, 16]);
+    ctx.beginPath();
+    ctx.arc(world.cx, world.cy, R, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.fillStyle = 'rgba(0,0,0,.22)';
+    ctx.beginPath();
+    ctx.arc(world.cx, world.cy, R - 28, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#ffd24c';
+    ctx.strokeStyle = '#3a2305';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.arc(world.cx, world.cy, 38, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = '#102033';
+    ctx.font = 'bold 14px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('CENTER', world.cx, world.cy + 5);
+
+    ctx.restore();
+  }
+
+  function drawBonusStars() {
+    const R = trackRadiusPx();
+    ctx.save();
+    stars.forEach(st => {
+      if (st.taken) return;
+      const x = world.cx + R * Math.cos(st.angle);
+      const y = world.cy + R * Math.sin(st.angle);
+      drawStar(x, y, 13, '#ffd94a');
+    });
+    ctx.restore();
+  }
+
+  function drawStar(x, y, r, color) {
+    ctx.save();
+    ctx.fillStyle = color;
+    ctx.strokeStyle = '#5a3307';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    for (let i = 0; i < 10; i++) {
+      const a = -Math.PI / 2 + i * Math.PI / 5;
+      const rr = i % 2 === 0 ? r : r * 0.45;
+      const px = x + rr * Math.cos(a);
+      const py = y + rr * Math.sin(a);
+      if (i === 0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    }
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawShip() {
+    const R = trackRadiusPx() + (skid ? skidDistance : 0);
+    const x = world.cx + R * Math.cos(shipAngle);
+    const y = world.cy + R * Math.sin(shipAngle);
+    const tangentAngle = shipAngle + Math.PI / 2;
+
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(tangentAngle);
+
+    ctx.fillStyle = 'rgba(0,0,0,.22)';
+    ctx.beginPath();
+    ctx.ellipse(0, 24, 44, 12, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#263959';
+    ctx.strokeStyle = '#0b1124';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(54, 0);
+    ctx.lineTo(-30, -26);
+    ctx.lineTo(-18, 0);
+    ctx.lineTo(-30, 26);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = '#53d4ff';
+    ctx.beginPath();
+    ctx.arc(4, 0, 12, 0, Math.PI * 2);
+    ctx.fill();
+
+    if (running) {
+      ctx.fillStyle = '#ff7a22';
+      ctx.beginPath();
+      ctx.moveTo(-32, 0);
+      ctx.lineTo(-68 - Math.random() * 12, -11);
+      ctx.lineTo(-68 - Math.random() * 12, 11);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    ctx.restore();
+
+    drawVectors(x, y);
+  }
+
+  function drawVectors(x, y) {
+    const input = getInput();
+    const tangentAngle = shipAngle + Math.PI / 2;
+    const centerAngle = Math.atan2(world.cy - y, world.cx - x);
+    drawArrow(x, y, x + 70 * Math.cos(tangentAngle), y + 70 * Math.sin(tangentAngle), '#ffdf3f', 'v');
+    drawArrow(x, y, x + 78 * Math.cos(centerAngle), y + 78 * Math.sin(centerAngle), '#0f9d58', 'a,F');
+
+    if (input.v > input.vmax) {
+      const outward = Math.atan2(y - world.cy, x - world.cx);
+      drawArrow(x, y, x + 72 * Math.cos(outward), y + 72 * Math.sin(outward), '#d93025', 'skid');
+    }
+  }
+
+  function drawArrow(x1, y1, x2, y2, color, label) {
+    const a = Math.atan2(y2 - y1, x2 - x1);
+    const h = 12;
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.fillStyle = color;
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x2, y2);
+    ctx.lineTo(x2 - h * Math.cos(a - Math.PI / 6), y2 - h * Math.sin(a - Math.PI / 6));
+    ctx.lineTo(x2 - h * Math.cos(a + Math.PI / 6), y2 - h * Math.sin(a + Math.PI / 6));
+    ctx.closePath();
+    ctx.fill();
+    ctx.font = 'bold 15px Arial';
+    ctx.fillText(label, x2 + 8, y2 - 8);
+    ctx.restore();
+  }
+
+  function drawParticles() {
+    ctx.save();
+    particles.forEach(p => {
+      ctx.globalAlpha = Math.max(0, p.life);
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 7 * p.life, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    ctx.restore();
+  }
+
+  function explode(x, y, color) {
+    for (let i = 0; i < 30; i++) {
+      particles.push({
+        x,
+        y,
+        vx: random(-230, 230),
+        vy: random(-230, 230),
+        life: 1,
+        color: color || (i % 2 ? '#ffdf3f' : '#53d4ff')
+      });
+    }
+  }
+
+  function updateShip(dt) {
+    if (!running || paused || lives <= 0) return;
+    const input = getInput();
+    const angularSpeed = input.v / input.r;
+    shipAngle += angularSpeed * dt;
+
+    timer = Math.max(0, timer - dt);
+
+    stars.forEach(st => {
+      if (st.taken) return;
+      const diff = Math.abs(Math.atan2(Math.sin(shipAngle - st.angle), Math.cos(shipAngle - st.angle)));
+      if (diff < 0.08 && !skid) {
+        st.taken = true;
+        score += 20;
+        message = 'Energy star collected! +20';
+      }
+    });
+
+    if (input.v > input.vmax) {
+      skid = true;
+      skidDistance += 58 * dt;
+      message = 'Skidding outward! Speed is unsafe.';
+      if (skidDistance > 120) {
+        const R = trackRadiusPx() + skidDistance;
+        const x = world.cx + R * Math.cos(shipAngle);
+        const y = world.cy + R * Math.sin(shipAngle);
+        explode(x, y, '#ff653b');
+        lives -= 1;
+        running = false;
+        skid = false;
+        skidDistance = 0;
+        shipAngle = -Math.PI / 2;
+        message = lives > 0 ? 'Crash! Reduce speed or increase grip.' : 'Game Over';
+      }
+    } else {
+      skid = false;
+      skidDistance = 0;
+      if (timer > 0) {
+        score += dt * 8;
+        if (Math.floor(score / 300) + 1 > level) {
+          level = Math.floor(score / 300) + 1;
+          message = 'Level up! Keep the orbit stable.';
+        } else if (message === 'Ready: adjust speed, radius and friction.' || message.includes('Safe')) {
+          message = 'Safe orbit. Keep going!';
+        }
+      }
+    }
+
+    highScore = Math.max(highScore, Math.floor(score));
+    localStorage.setItem('drAiCircularSpaceTrackHighScore', String(highScore));
+
+    if (timer <= 0 && lives > 0) {
+      running = false;
+      score += 100;
+      message = 'Mission complete! +100 survival bonus';
+      generateStars();
+      timer = 60;
+    }
+  }
+
+  function updateParticles(dt) {
+    particles.forEach(p => {
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+      p.life -= dt * 1.25;
+    });
+    particles = particles.filter(p => p.life > 0);
+  }
+
+  function drawDiagram() {
+    dctx.clearRect(0, 0, diagramCanvas.width, diagramCanvas.height);
+    dctx.fillStyle = '#fff7df';
+    dctx.fillRect(0, 0, diagramCanvas.width, diagramCanvas.height);
+
+    const cx = 150;
+    const cy = 95;
+    const R = 58;
+    const x = cx + R * Math.cos(-0.8);
+    const y = cy + R * Math.sin(-0.8);
+
+    dctx.strokeStyle = '#1769ff';
+    dctx.lineWidth = 4;
+    dctx.beginPath();
+    dctx.arc(cx, cy, R, 0, Math.PI * 2);
+    dctx.stroke();
+
+    dctx.fillStyle = '#ffd24c';
+    dctx.beginPath();
+    dctx.arc(cx, cy, 10, 0, Math.PI * 2);
+    dctx.fill();
+
+    dctx.fillStyle = '#25354b';
+    dctx.beginPath();
+    dctx.arc(x, y, 11, 0, Math.PI * 2);
+    dctx.fill();
+
+    diagramArrow(x, y, x + 55, y + 45, '#ffbf00', 'v');
+    diagramArrow(x, y, cx, cy, '#0f9d58', 'a,F');
+
+    dctx.fillStyle = '#102033';
+    dctx.font = 'bold 13px Arial';
+    dctx.fillText('Circular Motion', 96, 22);
+    dctx.fillText('Force and acceleration point to center.', 38, 174);
+  }
+
+  function diagramArrow(x1, y1, x2, y2, color, label) {
+    const a = Math.atan2(y2 - y1, x2 - x1);
+    const h = 9;
+    dctx.strokeStyle = color;
+    dctx.fillStyle = color;
+    dctx.lineWidth = 3;
+    dctx.beginPath();
+    dctx.moveTo(x1, y1);
+    dctx.lineTo(x2, y2);
+    dctx.stroke();
+    dctx.beginPath();
+    dctx.moveTo(x2, y2);
+    dctx.lineTo(x2 - h * Math.cos(a - Math.PI / 6), y2 - h * Math.sin(a - Math.PI / 6));
+    dctx.lineTo(x2 - h * Math.cos(a + Math.PI / 6), y2 - h * Math.sin(a + Math.PI / 6));
+    dctx.closePath();
+    dctx.fill();
+    dctx.font = 'bold 13px Arial';
+    dctx.fillText(label, x2 + 5, y2 - 5);
+  }
+
+  function startMission() {
+    if (lives <= 0) return;
+    running = true;
+    paused = false;
+    skid = false;
+    skidDistance = 0;
+    message = 'Orbit mission started!';
+  }
+
+  function resetMission() {
+    running = false;
+    paused = false;
+    skid = false;
+    skidDistance = 0;
+    shipAngle = -Math.PI / 2;
+    timer = 60;
+    message = 'Mission reset.';
+    pauseBtn.textContent = 'Pause';
+  }
+
+  function newMission() {
+    running = false;
+    paused = false;
+    skid = false;
+    skidDistance = 0;
+    shipAngle = -Math.PI / 2;
+    speedEl.value = Math.round(random(10, 34));
+    radiusEl.value = Math.round(random(30, 70));
+    muEl.value = random(0.25, 1.05).toFixed(2);
+    massEl.value = Math.round(random(300, 1200) / 50) * 50;
+    generateStars();
+    timer = 60;
+    message = 'New orbit mission generated.';
+  }
+
+  function restartGame() {
+    score = 0;
+    level = 1;
+    lives = 5;
+    timer = 60;
+    running = false;
+    paused = false;
+    skid = false;
+    skidDistance = 0;
+    shipAngle = -Math.PI / 2;
+    particles = [];
+    generateStars();
+    message = 'New game started.';
+    pauseBtn.textContent = 'Pause';
+  }
+
+  function gameLoop(timestamp) {
+    if (!lastTime) lastTime = timestamp;
+    const dt = Math.min(0.04, (timestamp - lastTime) / 1000);
+    lastTime = timestamp;
+
+    if (!paused) {
+      updateShip(dt);
+      updateParticles(dt);
+    }
+
+    updateUI();
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawBackground(timestamp);
+    drawTrack();
+    drawBonusStars();
+    drawShip();
+    drawParticles();
+    drawDiagram();
+
+    requestAnimationFrame(gameLoop);
+  }
+
+  [speedEl, radiusEl, muEl, massEl].forEach(el => {
+    el.addEventListener('input', updateUI);
+  });
+
+  startBtn.addEventListener('click', startMission);
+  pauseBtn.addEventListener('click', () => {
+    paused = !paused;
+    pauseBtn.textContent = paused ? 'Resume' : 'Pause';
+    message = paused ? 'Paused' : 'Ready';
+  });
+  resetBtn.addEventListener('click', resetMission);
+  newMissionBtn.addEventListener('click', newMission);
+  restartBtn.addEventListener('click', restartGame);
+
+  generateStars();
+  updateUI();
+  drawDiagram();
+  requestAnimationFrame(gameLoop);
+</script>
+</body>
+</html>

@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Magnetic Force Defense Game | Dr AI Academy</title>
+  <style>
+    :root {
+      --panel:#ffffff;
+      --ink:#102033;
+      --muted:#637083;
+      --blue:#1769ff;
+      --green:#0f9d58;
+      --orange:#f57c00;
+      --red:#d93025;
+      --purple:#7b1fa2;
+      --line:#dbe6f6;
+      --soft:#f7fbff;
+      --shadow:0 14px 30px rgba(16,32,51,.14);
+    }
+
+    * { box-sizing:border-box; }
+
+    body {
+      margin:0;
+      font-family:"Trebuchet MS", Arial, sans-serif;
+      background:linear-gradient(180deg,#edf7ff,#ffffff);
+      color:var(--ink);
+    }
+
+    header {
+      text-align:center;
+      padding:22px 16px;
+      color:#fff;
+      background:linear-gradient(135deg,#061d49,#0d6efd);
+    }
+
+    header h1 {
+      margin:0 0 8px;
+      font-size:clamp(26px,4vw,44px);
+      font-weight:1000;
+    }
+
+    header p {
+      margin:0;
+      opacity:.95;
+      font-size:16px;
+    }
+
+    .app {
+      max-width:1280px;
+      margin:22px auto 34px;
+      padding:0 16px;
+    }
+
+    .game-stage-card {
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:24px;
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+
+    .top-hud {
+      display:grid;
+      grid-template-columns:repeat(5,1fr);
+      gap:10px;
+      padding:14px;
+      background:linear-gradient(180deg,#ffffff,#f4f9ff);
+      border-bottom:1px solid var(--line);
+    }
+
+    .hud-box {
+      border:2px solid #dbeafe;
+      border-radius:16px;
+      background:linear-gradient(180deg,#ffffff,#eef7ff);
+      padding:10px 12px;
+      text-align:center;
+    }
+
+    .hud-box b {
+      display:block;
+      color:var(--muted);
+      font-size:13px;
+      margin-bottom:4px;
+    }
+
+    .hud-box span {
+      font-size:24px;
+      color:#0b3d7a;
+      font-weight:1000;
+    }
+
+    .game-window {
+      position:relative;
+      width:100%;
+      aspect-ratio:16/8.2;
+      min-height:520px;
+      background:#06122b;
+    }
+
+    canvas#gameCanvas {
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+      display:block;
+      z-index:1;
+    }
+
+    .game-message {
+      position:absolute;
+      left:50%;
+      bottom:18px;
+      transform:translateX(-50%);
+      min-width:340px;
+      max-width:82%;
+      text-align:center;
+      background:rgba(10,18,45,.92);
+      border:3px solid rgba(255,255,255,.35);
+      border-radius:999px;
+      color:#fff2cc;
+      padding:10px 22px;
+      font-weight:1000;
+      font-size:20px;
+      z-index:2;
+      box-shadow:0 8px 20px rgba(0,0,0,.18);
+      pointer-events:none;
+    }
+
+    .watermark {
+      position:absolute;
+      right:18px;
+      bottom:18px;
+      color:rgba(255,255,255,.78);
+      text-align:right;
+      font-weight:900;
+      text-shadow:1px 1px 3px rgba(0,0,0,.35);
+      z-index:2;
+      pointer-events:none;
+    }
+
+    .workspace {
+      display:grid;
+      grid-template-columns:1.1fr .9fr;
+      gap:18px;
+      margin-top:18px;
+    }
+
+    .card {
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:22px;
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+
+    .card-head {
+      padding:16px 18px;
+      background:linear-gradient(180deg,#ffffff,#f4f9ff);
+      border-bottom:1px solid var(--line);
+    }
+
+    .card-head h2 {
+      margin:0;
+      font-size:22px;
+      color:#102033;
+    }
+
+    .card-body { padding:18px; }
+
+    .control-grid {
+      display:grid;
+      grid-template-columns:1fr;
+      gap:14px;
+    }
+
+    .control-box {
+      border:2px solid #e3edf9;
+      background:linear-gradient(180deg,#ffffff,#f7fbff);
+      border-radius:18px;
+      padding:14px;
+    }
+
+    .control-title {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      margin-bottom:10px;
+      font-weight:1000;
+      color:#243244;
+      font-size:18px;
+    }
+
+    .control-title span {
+      min-width:112px;
+      text-align:center;
+      color:#0b55a4;
+      background:#eaf4ff;
+      border:2px solid #cfe4ff;
+      padding:6px 10px;
+      border-radius:12px;
+      font-weight:1000;
+    }
+
+    input[type="range"] {
+      width:100%;
+      accent-color:var(--blue);
+      cursor:pointer;
+    }
+
+    select {
+      width:100%;
+      padding:12px;
+      border-radius:14px;
+      border:2px solid #cfe4ff;
+      background:#fff;
+      color:#102033;
+      font-weight:900;
+      font-size:16px;
+    }
+
+    .button-row {
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
+      margin-top:16px;
+    }
+
+    button {
+      border:0;
+      border-radius:16px;
+      padding:14px 16px;
+      font-size:17px;
+      font-weight:1000;
+      color:#fff;
+      cursor:pointer;
+      box-shadow:0 6px 0 rgba(0,0,0,.18), 0 12px 20px rgba(0,0,0,.12);
+    }
+
+    .start-btn {
+      grid-column:1/-1;
+      font-size:28px;
+      padding:18px 16px;
+      background:linear-gradient(#b9ff4e,#3fae12);
+      text-shadow:2px 2px 0 #24550a;
+      border:4px solid #2e6f0a;
+    }
+
+    .pause-btn { background:linear-gradient(#ffb347,#f57c00); }
+    .reset-btn { background:linear-gradient(#ff6b6b,#d93025); }
+    .mission-btn { background:linear-gradient(#3ccf7a,#0f9d58); }
+    .restart-btn { background:linear-gradient(#9b6cff,#6d35c9); }
+
+    .hint-box {
+      margin-top:14px;
+      padding:14px;
+      border-radius:16px;
+      background:#fff7df;
+      border:2px solid #ffe0a3;
+      color:#6b3a08;
+      font-weight:900;
+      line-height:1.45;
+    }
+
+    .values-grid {
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
+    }
+
+    .value-card {
+      border:2px solid #e3edf9;
+      background:#f7fbff;
+      border-radius:16px;
+      padding:12px;
+    }
+
+    .value-card b {
+      display:block;
+      color:var(--muted);
+      font-size:13px;
+      margin-bottom:4px;
+    }
+
+    .value-card span {
+      font-size:18px;
+      color:#0b3d7a;
+      font-weight:1000;
+    }
+
+    .explain-layout {
+      display:grid;
+      grid-template-columns:300px 1fr;
+      gap:16px;
+      align-items:center;
+    }
+
+    .diagram-box {
+      border:2px solid #e3edf9;
+      background:#fff7df;
+      border-radius:18px;
+      padding:12px;
+    }
+
+    #diagramCanvas {
+      width:100%;
+      height:190px;
+      display:block;
+    }
+
+    .formula-list {
+      margin:0;
+      padding:0;
+      list-style:none;
+      display:grid;
+      gap:8px;
+    }
+
+    .formula-list li {
+      background:#f7fbff;
+      border:1px solid #dbeafe;
+      padding:9px 12px;
+      border-radius:12px;
+      color:#0b55a4;
+      font-weight:900;
+      font-size:15px;
+    }
+
+    .learning-section {
+      display:grid;
+      grid-template-columns:repeat(2,1fr);
+      gap:18px;
+      margin-top:18px;
+    }
+
+    .learning-section ul,
+    .learning-section ol {
+      margin:0;
+      padding-left:22px;
+      line-height:1.65;
+      color:#39485c;
+    }
+
+    .learning-section p {
+      color:#39485c;
+      line-height:1.6;
+    }
+
+    footer {
+      text-align:center;
+      padding:10px 16px 32px;
+      color:#637083;
+      font-size:14px;
+    }
+
+    footer a {
+      color:#0b55a4;
+      font-weight:1000;
+      text-decoration:none;
+    }
+
+    footer a:hover { text-decoration:underline; }
+
+    @media(max-width:980px) {
+      .top-hud { grid-template-columns:repeat(2,1fr); }
+      .game-window { aspect-ratio:auto; min-height:440px; }
+      .workspace,
+      .learning-section,
+      .explain-layout { grid-template-columns:1fr; }
+      .values-grid { grid-template-columns:1fr; }
+      .button-row { grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body>
+<header>
+  <h1>Magnetic Force Defense Game</h1>
+  <p>NEET Physics sci-fi game: use magnetic field to deflect charged particles and protect the space shield</p>
+</header>
+
+<main class="app">
+  <section class="game-stage-card">
+    <div class="top-hud">
+      <div class="hud-box"><b>Score</b><span id="scoreText">0</span></div>
+      <div class="hud-box"><b>Level</b><span id="levelText">1</span></div>
+      <div class="hud-box"><b>High Score</b><span id="highScoreText">0</span></div>
+      <div class="hud-box"><b>Lives</b><span id="livesText">5</span></div>
+      <div class="hud-box"><b>Timer</b><span id="timerText">60s</span></div>
+    </div>
+
+    <div class="game-window">
+      <canvas id="gameCanvas" width="1280" height="640"></canvas>
+      <div class="game-message" id="messageBox">Ready: set magnetic field to deflect incoming charged particles.</div>
+      <div class="watermark">Dr AI Academy<br>AI Powered Physics Game Lab</div>
+    </div>
+  </section>
+
+  <section class="workspace">
+    <div class="card">
+      <div class="card-head"><h2>Defense Controls</h2></div>
+      <div class="card-body">
+        <div class="control-grid">
+          <div class="control-box">
+            <div class="control-title">Magnetic Field B <span id="bValue">0.60 T</span></div>
+            <input id="bField" type="range" min="0" max="2" step="0.05" value="0.60" />
+          </div>
+
+          <div class="control-box">
+            <div class="control-title">Particle Speed v <span id="speedValue">24 m/s</span></div>
+            <input id="speed" type="range" min="8" max="50" step="1" value="24" />
+          </div>
+
+          <div class="control-box">
+            <div class="control-title">Charge q <span id="chargeValue">+2 C</span></div>
+            <input id="charge" type="range" min="-5" max="5" step="1" value="2" />
+          </div>
+
+          <div class="control-box">
+            <div class="control-title">Mass m <span id="massValue">4 kg</span></div>
+            <input id="mass" type="range" min="1" max="12" step="1" value="4" />
+          </div>
+
+          <div class="control-box">
+            <div class="control-title">B Direction <span id="directionValue">Into page</span></div>
+            <select id="bDirection">
+              <option value="into" selected>Into Page (×)</option>
+              <option value="out">Out of Page (•)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="button-row">
+          <button class="start-btn" id="startBtn">START DEFENSE</button>
+          <button class="pause-btn" id="pauseBtn">Pause</button>
+          <button class="reset-btn" id="resetBtn">Reset Round</button>
+          <button class="mission-btn" id="newMissionBtn">New Mission</button>
+          <button class="restart-btn" id="restartBtn">Restart Game</button>
+        </div>
+
+        <div class="hint-box" id="hintBox">Goal: Bend particle path away from the shield. Direction depends on charge sign and magnetic field direction.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>Live Physics Values</h2></div>
+      <div class="card-body">
+        <div class="values-grid">
+          <div class="value-card"><b>Magnetic Force</b><span id="forceValue">--</span></div>
+          <div class="value-card"><b>Path Radius</b><span id="radiusValue">--</span></div>
+          <div class="value-card"><b>Acceleration</b><span id="accValue">--</span></div>
+          <div class="value-card"><b>Deflection Direction</b><span id="deflectValue">--</span></div>
+          <div class="value-card"><b>Shield Risk</b><span id="riskValue">--</span></div>
+          <div class="value-card"><b>Mission Status</b><span id="statusValue">--</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" style="margin-top:18px;">
+    <div class="card-head"><h2>Magnetic Force Diagram + Formulas</h2></div>
+    <div class="card-body explain-layout">
+      <div class="diagram-box">
+        <canvas id="diagramCanvas" width="300" height="190"></canvas>
+      </div>
+      <ul class="formula-list">
+        <li>Magnetic force on moving charge: F = qvB sinθ</li>
+        <li>For v perpendicular to B: F = qvB</li>
+        <li>Circular path radius: r = mv / |q|B</li>
+        <li>Acceleration: a = F / m = qvB / m</li>
+        <li>Force is perpendicular to velocity and magnetic field.</li>
+        <li>Negative charge bends opposite to positive charge.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="learning-section">
+    <div class="card">
+      <div class="card-head"><h2>Simple Explanation</h2></div>
+      <div class="card-body">
+        <p>A charged particle moving in a magnetic field experiences a force perpendicular to its velocity. This force bends the path into a curve. In this game, you control the magnetic field to deflect incoming particles away from the shield.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>NEET Traps</h2></div>
+      <div class="card-body">
+        <ul>
+          <li>Magnetic force is zero if charge is at rest.</li>
+          <li>Magnetic force is maximum when velocity is perpendicular to magnetic field.</li>
+          <li>Magnetic force does no work because it is perpendicular to velocity.</li>
+          <li>Negative charge deflects opposite to positive charge.</li>
+          <li>Radius decreases when magnetic field or charge magnitude increases.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>Observation Questions</h2></div>
+      <div class="card-body">
+        <ol>
+          <li>What happens to magnetic force when B is doubled?</li>
+          <li>What happens to radius when speed increases?</li>
+          <li>Why does magnetic force not change speed?</li>
+          <li>How does negative charge deflect compared to positive charge?</li>
+          <li>When is magnetic force zero?</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>Learning Goal</h2></div>
+      <div class="card-body">
+        <ul>
+          <li>Visualize magnetic force direction.</li>
+          <li>Understand circular motion of charged particles.</li>
+          <li>Practice right-hand rule concepts.</li>
+          <li>Connect F = qvB with particle deflection.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <a href="https://courses.draiacademy.com" target="_blank" rel="noopener">Dr AI Academy</a> | AI Powered Physics Game Lab
+</footer>
+
+<script>
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
+  const diagramCanvas = document.getElementById('diagramCanvas');
+  const dctx = diagramCanvas.getContext('2d');
+
+  const bFieldEl = document.getElementById('bField');
+  const speedEl = document.getElementById('speed');
+  const chargeEl = document.getElementById('charge');
+  const massEl = document.getElementById('mass');
+  const bDirectionEl = document.getElementById('bDirection');
+
+  const bValue = document.getElementById('bValue');
+  const speedValue = document.getElementById('speedValue');
+  const chargeValue = document.getElementById('chargeValue');
+  const massValue = document.getElementById('massValue');
+  const directionValue = document.getElementById('directionValue');
+
+  const scoreText = document.getElementById('scoreText');
+  const levelText = document.getElementById('levelText');
+  const highScoreText = document.getElementById('highScoreText');
+  const livesText = document.getElementById('livesText');
+  const timerText = document.getElementById('timerText');
+  const messageBox = document.getElementById('messageBox');
+  const hintBox = document.getElementById('hintBox');
+
+  const forceValue = document.getElementById('forceValue');
+  const radiusValue = document.getElementById('radiusValue');
+  const accValue = document.getElementById('accValue');
+  const deflectValue = document.getElementById('deflectValue');
+  const riskValue = document.getElementById('riskValue');
+  const statusValue = document.getElementById('statusValue');
+
+  const startBtn = document.getElementById('startBtn');
+  const pauseBtn = document.getElementById('pauseBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const newMissionBtn = document.getElementById('newMissionBtn');
+  const restartBtn = document.getElementById('restartBtn');
+
+  let score = 0;
+  let level = 1;
+  let lives = 5;
+  let timer = 60;
+  let paused = false;
+  let running = false;
+  let lastTime = 0;
+  let message = 'Ready: set magnetic field to deflect incoming particles.';
+  let highScore = Number(localStorage.getItem('drAiMagneticDefenseHighScore') || 0);
+  let particle;
+  let particles = [];
+  let trail = [];
+  let judged = false;
+
+  const shield = { x:1120, y:320, r:78 };
+  const targetZone = { x:1120, y:130, r:48 };
+
+  const starField = Array.from({ length: 100 }, () => ({
+    x: Math.random() * 1280,
+    y: Math.random() * 640,
+    r: Math.random() * 1.7 + 0.4,
+    tw: Math.random() * 2 + 0.5
+  }));
+
+  function random(min, max) { return Math.random() * (max - min) + min; }
+  function format(num, unit) { return Number.isFinite(num) ? num.toFixed(2) + ' ' + unit : '--'; }
+  function signText(q) { return q > 0 ? '+' + q : String(q); }
+
+  function getInput() {
+    const B = Number(bFieldEl.value);
+    const v = Number(speedEl.value);
+    const q = Number(chargeEl.value) || 1;
+    const m = Number(massEl.value);
+    const dir = bDirectionEl.value;
+    const F = Math.abs(q) * v * B;
+    const radius = B === 0 || q === 0 ? Infinity : (m * v) / (Math.abs(q) * B);
+    const acc = m === 0 ? 0 : F / m;
+    const directionSign = (q > 0 ? 1 : -1) * (dir === 'into' ? 1 : -1);
+    const deflection = directionSign > 0 ? 'Upward' : 'Downward';
+    let risk = 'Medium';
+    if (B < 0.15) risk = 'High';
+    else if (radius < 28) risk = 'Over-bent';
+    else if (radius > 100) risk = 'High';
+    else risk = 'Controlled';
+    return { B, v, q, m, dir, F, radius, acc, directionSign, deflection, risk };
+  }
+
+  function resetParticle() {
+    const input = getInput();
+    particle = {
+      x: 130,
+      y: 320,
+      vx: input.v * 10,
+      vy: 0,
+      q: input.q,
+      r: 15
+    };
+    trail = [];
+    judged = false;
+  }
+
+  function updateUI() {
+    const input = getInput();
+    bValue.textContent = input.B.toFixed(2) + ' T';
+    speedValue.textContent = input.v + ' m/s';
+    chargeValue.textContent = signText(input.q) + ' C';
+    massValue.textContent = input.m + ' kg';
+    directionValue.textContent = input.dir === 'into' ? 'Into page' : 'Out of page';
+
+    scoreText.textContent = Math.floor(score);
+    levelText.textContent = level;
+    highScoreText.textContent = Math.floor(highScore);
+    livesText.textContent = lives;
+    timerText.textContent = Math.ceil(timer) + 's';
+    messageBox.textContent = message;
+
+    forceValue.textContent = format(input.F, 'N');
+    radiusValue.textContent = Number.isFinite(input.radius) ? format(input.radius, 'm') : '∞';
+    accValue.textContent = format(input.acc, 'm/s²');
+    deflectValue.textContent = input.deflection;
+    riskValue.textContent = input.risk;
+    statusValue.textContent = running ? 'Defense active' : 'Ready';
+
+    if (input.B === 0) {
+      hintBox.textContent = 'Magnetic field is zero, so particle will move straight and hit the shield.';
+    } else if (input.risk === 'Controlled') {
+      hintBox.textContent = 'Good setting! Particle should bend enough to avoid the shield.';
+    } else if (input.risk === 'Over-bent') {
+      hintBox.textContent = 'Field is too strong. Particle may bend too sharply. Adjust B or speed.';
+    } else {
+      hintBox.textContent = 'Risk is high. Increase magnetic field or adjust charge/direction to deflect particle.';
+    }
+  }
+
+  function drawBackground(time) {
+    const grad = ctx.createRadialGradient(640, 310, 40, 640, 310, 820);
+    grad.addColorStop(0, '#123c8c');
+    grad.addColorStop(0.45, '#071a45');
+    grad.addColorStop(1, '#020716');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.save();
+    starField.forEach(s => {
+      ctx.globalAlpha = 0.35 + 0.45 * Math.sin(time * 0.002 * s.tw + s.x);
+      ctx.fillStyle = '#dff7ff';
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    ctx.restore();
+
+    ctx.strokeStyle = 'rgba(83,212,255,.13)';
+    ctx.lineWidth = 1;
+    for (let x = 80; x < 1240; x += 80) {
+      ctx.beginPath();
+      ctx.moveTo(x, 95);
+      ctx.lineTo(x, 550);
+      ctx.stroke();
+    }
+    for (let y = 110; y < 560; y += 70) {
+      ctx.beginPath();
+      ctx.moveTo(70, y);
+      ctx.lineTo(1210, y);
+      ctx.stroke();
+    }
+  }
+
+  function drawArena() {
+    ctx.save();
+    ctx.fillStyle = 'rgba(83,212,255,.08)';
+    ctx.strokeStyle = 'rgba(83,212,255,.75)';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.roundRect(75, 92, 1130, 460, 26);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = '#fff2cc';
+    ctx.font = 'bold 18px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('MAGNETIC DEFENSE ARENA', 640, 72);
+    ctx.restore();
+  }
+
+  function drawFieldSymbols() {
+    const input = getInput();
+    ctx.save();
+    ctx.fillStyle = 'rgba(223,247,255,.65)';
+    ctx.strokeStyle = 'rgba(223,247,255,.65)';
+    ctx.lineWidth = 2;
+    ctx.font = 'bold 20px Arial';
+    ctx.textAlign = 'center';
+    for (let x = 170; x <= 980; x += 82) {
+      for (let y = 140; y <= 500; y += 70) {
+        if (input.dir === 'into') {
+          ctx.fillText('×', x, y);
+        } else {
+          ctx.beginPath();
+          ctx.arc(x, y, 8, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.arc(x, y, 2.5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+    }
+    ctx.restore();
+  }
+
+  function drawShield() {
+    ctx.save();
+    const grad = ctx.createRadialGradient(shield.x, shield.y, 8, shield.x, shield.y, shield.r + 32);
+    grad.addColorStop(0, 'rgba(255,255,255,.95)');
+    grad.addColorStop(0.35, 'rgba(83,212,255,.55)');
+    grad.addColorStop(1, 'rgba(83,212,255,0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(shield.x, shield.y, shield.r + 35, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = '#53d4ff';
+    ctx.lineWidth = 8;
+    ctx.beginPath();
+    ctx.arc(shield.x, shield.y, shield.r, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.fillStyle = '#dff7ff';
+    ctx.font = 'bold 15px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('SPACE', shield.x, shield.y - 8);
+    ctx.fillText('SHIELD', shield.x, shield.y + 12);
+
+    ctx.strokeStyle = '#53ff9e';
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.arc(targetZone.x, targetZone.y, targetZone.r, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.fillStyle = '#dfffe8';
+    ctx.font = 'bold 13px Arial';
+    ctx.fillText('SAFE', targetZone.x, targetZone.y - 2);
+    ctx.fillText('ZONE', targetZone.x, targetZone.y + 15);
+    ctx.restore();
+  }
+
+  function drawTrail() {
+    if (trail.length < 2) return;
+    ctx.save();
+    ctx.strokeStyle = 'rgba(255,223,63,.8)';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    trail.forEach((p, i) => {
+      if (i === 0) ctx.moveTo(p.x, p.y);
+      else ctx.lineTo(p.x, p.y);
+    });
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawParticle() {
+    if (!particle) return;
+    const input = getInput();
+    const color = input.q >= 0 ? '#ffdf3f' : '#b086ff';
+
+    ctx.save();
+    ctx.fillStyle = 'rgba(0,0,0,.24)';
+    ctx.beginPath();
+    ctx.ellipse(particle.x, particle.y + 22, 30, 9, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = color;
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.arc(particle.x, particle.y, particle.r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = '#102033';
+    ctx.font = 'bold 17px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(input.q >= 0 ? '+' : '−', particle.x, particle.y + 6);
+
+    const vAngle = Math.atan2(particle.vy, particle.vx);
+    drawArrow(particle.x, particle.y, particle.x + 70 * Math.cos(vAngle), particle.y + 70 * Math.sin(vAngle), '#ffdf3f', 'v');
+
+    const fAngle = vAngle + input.directionSign * -Math.PI / 2;
+    if (input.B > 0 && input.q !== 0) {
+      drawArrow(particle.x, particle.y, particle.x + 72 * Math.cos(fAngle), particle.y + 72 * Math.sin(fAngle), '#53ff9e', 'F');
+    }
+    ctx.restore();
+  }
+
+  function drawArrow(x1, y1, x2, y2, color, label) {
+    const a = Math.atan2(y2 - y1, x2 - x1);
+    const h = 11;
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.fillStyle = color;
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x2, y2);
+    ctx.lineTo(x2 - h * Math.cos(a - Math.PI / 6), y2 - h * Math.sin(a - Math.PI / 6));
+    ctx.lineTo(x2 - h * Math.cos(a + Math.PI / 6), y2 - h * Math.sin(a + Math.PI / 6));
+    ctx.closePath();
+    ctx.fill();
+    ctx.font = 'bold 14px Arial';
+    ctx.fillText(label, x2 + 8, y2 - 8);
+    ctx.restore();
+  }
+
+  function drawParticles() {
+    ctx.save();
+    particles.forEach(p => {
+      ctx.globalAlpha = Math.max(0, p.life);
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 7 * p.life, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    ctx.restore();
+  }
+
+  function explode(x, y, color) {
+    for (let i = 0; i < 34; i++) {
+      particles.push({
+        x,
+        y,
+        vx: random(-230, 230),
+        vy: random(-230, 230),
+        life: 1,
+        color: color || (i % 2 ? '#ffdf3f' : '#53d4ff')
+      });
+    }
+  }
+
+  function updateParticle(dt) {
+    if (!running || paused || lives <= 0 || !particle) return;
+    timer = Math.max(0, timer - dt);
+    const input = getInput();
+
+    const vMag = Math.hypot(particle.vx, particle.vy);
+    if (input.B > 0 && input.q !== 0 && vMag > 0.01) {
+      const omega = (Math.abs(input.q) * input.B / input.m) * 2.2;
+      const sign = input.directionSign;
+      const angle = sign * -omega * dt;
+      const cos = Math.cos(angle);
+      const sin = Math.sin(angle);
+      const vx = particle.vx * cos - particle.vy * sin;
+      const vy = particle.vx * sin + particle.vy * cos;
+      particle.vx = vx;
+      particle.vy = vy;
+    }
+
+    particle.x += particle.vx * dt;
+    particle.y += particle.vy * dt;
+    trail.push({ x: particle.x, y: particle.y });
+    if (trail.length > 130) trail.shift();
+
+    const dShield = Math.hypot(particle.x - shield.x, particle.y - shield.y);
+    const dSafe = Math.hypot(particle.x - targetZone.x, particle.y - targetZone.y);
+
+    if (!judged && dSafe < targetZone.r) {
+      score += 100;
+      level = Math.floor(score / 300) + 1;
+      highScore = Math.max(highScore, score);
+      localStorage.setItem('drAiMagneticDefenseHighScore', String(highScore));
+      explode(targetZone.x, targetZone.y, '#53ff9e');
+      message = 'Perfect deflection! +100';
+      judged = true;
+      running = false;
+      return;
+    }
+
+    if (!judged && dShield < shield.r) {
+      lives -= 1;
+      explode(particle.x, particle.y, '#ff653b');
+      message = lives > 0 ? 'Shield hit! Adjust B or direction.' : 'Game Over';
+      judged = true;
+      running = false;
+      return;
+    }
+
+    if (particle.x > 1240 || particle.y < 80 || particle.y > 560 || particle.x < 60) {
+      if (!judged) {
+        score += 50;
+        highScore = Math.max(highScore, score);
+        localStorage.setItem('drAiMagneticDefenseHighScore', String(highScore));
+        message = 'Particle deflected away! +50';
+        judged = true;
+      }
+      running = false;
+    }
+
+    if (timer <= 0 && lives > 0) {
+      lives -= 1;
+      running = false;
+      message = lives > 0 ? 'Time up! Try stronger magnetic defense.' : 'Game Over';
+    }
+  }
+
+  function updateParticles(dt) {
+    particles.forEach(p => {
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+      p.life -= dt * 1.25;
+    });
+    particles = particles.filter(p => p.life > 0);
+  }
+
+  function drawDiagram() {
+    dctx.clearRect(0, 0, diagramCanvas.width, diagramCanvas.height);
+    dctx.fillStyle = '#fff7df';
+    dctx.fillRect(0, 0, diagramCanvas.width, diagramCanvas.height);
+
+    dctx.fillStyle = '#102033';
+    dctx.font = 'bold 13px Arial';
+    dctx.textAlign = 'center';
+    dctx.fillText('Magnetic force is perpendicular', 150, 24);
+
+    dctx.fillStyle = '#dbeafe';
+    dctx.strokeStyle = '#0b55a4';
+    dctx.lineWidth = 2;
+    for (let x = 60; x <= 240; x += 45) {
+      for (let y = 55; y <= 145; y += 45) {
+        dctx.fillText('×', x, y);
+      }
+    }
+
+    dArrow(80, 130, 210, 130, '#ffbf00', 'v');
+    dArrow(145, 130, 145, 65, '#0f9d58', 'F');
+
+    dctx.fillStyle = '#ffdf3f';
+    dctx.beginPath();
+    dctx.arc(80, 130, 12, 0, Math.PI * 2);
+    dctx.fill();
+    dctx.fillStyle = '#102033';
+    dctx.font = 'bold 13px Arial';
+    dctx.fillText('+q', 80, 134);
+    dctx.fillText('F = qvB', 150, 170);
+  }
+
+  function dArrow(x1, y1, x2, y2, color, label) {
+    const a = Math.atan2(y2 - y1, x2 - x1);
+    const h = 9;
+    dctx.strokeStyle = color;
+    dctx.fillStyle = color;
+    dctx.lineWidth = 3;
+    dctx.beginPath();
+    dctx.moveTo(x1, y1);
+    dctx.lineTo(x2, y2);
+    dctx.stroke();
+    dctx.beginPath();
+    dctx.moveTo(x2, y2);
+    dctx.lineTo(x2 - h * Math.cos(a - Math.PI / 6), y2 - h * Math.sin(a - Math.PI / 6));
+    dctx.lineTo(x2 - h * Math.cos(a + Math.PI / 6), y2 - h * Math.sin(a + Math.PI / 6));
+    dctx.closePath();
+    dctx.fill();
+    dctx.font = 'bold 12px Arial';
+    dctx.fillText(label, x2 + 5, y2 - 5);
+  }
+
+  function startDefense() {
+    if (lives <= 0) return;
+    resetParticle();
+    running = true;
+    paused = false;
+    timer = 60;
+    message = 'Defense started! Deflect the particle.';
+    pauseBtn.textContent = 'Pause';
+  }
+
+  function resetRound() {
+    running = false;
+    paused = false;
+    resetParticle();
+    timer = 60;
+    message = 'Round reset.';
+    pauseBtn.textContent = 'Pause';
+  }
+
+  function newMission() {
+    running = false;
+    paused = false;
+    bFieldEl.value = random(0.25, 1.4).toFixed(2);
+    speedEl.value = Math.round(random(16, 40));
+    chargeEl.value = Math.random() > 0.5 ? Math.round(random(1, 5)) : -Math.round(random(1, 5));
+    massEl.value = Math.round(random(2, 10));
+    bDirectionEl.value = Math.random() > 0.5 ? 'into' : 'out';
+    resetParticle();
+    timer = 60;
+    message = 'New magnetic defense mission generated.';
+    pauseBtn.textContent = 'Pause';
+  }
+
+  function restartGame() {
+    score = 0;
+    level = 1;
+    lives = 5;
+    timer = 60;
+    running = false;
+    paused = false;
+    particles = [];
+    resetParticle();
+    message = 'New game started.';
+    pauseBtn.textContent = 'Pause';
+  }
+
+  function gameLoop(timestamp) {
+    if (!lastTime) lastTime = timestamp;
+    const dt = Math.min(0.04, (timestamp - lastTime) / 1000);
+    lastTime = timestamp;
+
+    if (!paused) {
+      updateParticle(dt);
+      updateParticles(dt);
+    }
+
+    updateUI();
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawBackground(timestamp);
+    drawArena();
+    drawFieldSymbols();
+    drawShield();
+    drawTrail();
+    drawParticle();
+    drawParticles();
+    drawDiagram();
+
+    requestAnimationFrame(gameLoop);
+  }
+
+  [bFieldEl, speedEl, chargeEl, massEl, bDirectionEl].forEach(el => {
+    el.addEventListener('input', updateUI);
+    el.addEventListener('change', updateUI);
+  });
+
+  startBtn.addEventListener('click', startDefense);
+  pauseBtn.addEventListener('click', () => {
+    paused = !paused;
+    pauseBtn.textContent = paused ? 'Resume' : 'Pause';
+    message = paused ? 'Paused' : 'Ready';
+  });
+  resetBtn.addEventListener('click', resetRound);
+  newMissionBtn.addEventListener('click', newMission);
+  restartBtn.addEventListener('click', restartGame);
+
+  resetParticle();
+  updateUI();
+  drawDiagram();
+  requestAnimationFrame(gameLoop);
+</script>
+</body>
+</html>

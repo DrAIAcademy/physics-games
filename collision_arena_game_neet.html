@@ -1,0 +1,1033 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Collision Arena Game | Dr AI Academy</title>
+  <style>
+    :root {
+      --panel:#ffffff;
+      --ink:#102033;
+      --muted:#637083;
+      --blue:#1769ff;
+      --green:#0f9d58;
+      --orange:#f57c00;
+      --red:#d93025;
+      --purple:#7b1fa2;
+      --line:#dbe6f6;
+      --soft:#f7fbff;
+      --shadow:0 14px 30px rgba(16,32,51,.14);
+    }
+
+    * { box-sizing:border-box; }
+
+    body {
+      margin:0;
+      font-family:"Trebuchet MS", Arial, sans-serif;
+      background:linear-gradient(180deg,#edf7ff,#ffffff);
+      color:var(--ink);
+    }
+
+    header {
+      text-align:center;
+      padding:22px 16px;
+      color:#fff;
+      background:linear-gradient(135deg,#061d49,#0d6efd);
+    }
+
+    header h1 {
+      margin:0 0 8px;
+      font-size:clamp(26px,4vw,44px);
+      font-weight:1000;
+    }
+
+    header p {
+      margin:0;
+      opacity:.95;
+      font-size:16px;
+    }
+
+    .app {
+      max-width:1280px;
+      margin:22px auto 34px;
+      padding:0 16px;
+    }
+
+    .game-stage-card {
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:24px;
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+
+    .top-hud {
+      display:grid;
+      grid-template-columns:repeat(5,1fr);
+      gap:10px;
+      padding:14px;
+      background:linear-gradient(180deg,#ffffff,#f4f9ff);
+      border-bottom:1px solid var(--line);
+    }
+
+    .hud-box {
+      border:2px solid #dbeafe;
+      border-radius:16px;
+      background:linear-gradient(180deg,#ffffff,#eef7ff);
+      padding:10px 12px;
+      text-align:center;
+    }
+
+    .hud-box b {
+      display:block;
+      color:var(--muted);
+      font-size:13px;
+      margin-bottom:4px;
+    }
+
+    .hud-box span {
+      font-size:24px;
+      color:#0b3d7a;
+      font-weight:1000;
+    }
+
+    .game-window {
+      position:relative;
+      width:100%;
+      aspect-ratio:16/8.2;
+      min-height:520px;
+      background:#06122b;
+    }
+
+    canvas#gameCanvas {
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+      display:block;
+      z-index:1;
+    }
+
+    .game-message {
+      position:absolute;
+      left:50%;
+      bottom:18px;
+      transform:translateX(-50%);
+      min-width:340px;
+      max-width:82%;
+      text-align:center;
+      background:rgba(10,18,45,.92);
+      border:3px solid rgba(255,255,255,.35);
+      border-radius:999px;
+      color:#fff2cc;
+      padding:10px 22px;
+      font-weight:1000;
+      font-size:20px;
+      z-index:2;
+      box-shadow:0 8px 20px rgba(0,0,0,.18);
+      pointer-events:none;
+    }
+
+    .watermark {
+      position:absolute;
+      right:18px;
+      bottom:18px;
+      color:rgba(255,255,255,.78);
+      text-align:right;
+      font-weight:900;
+      text-shadow:1px 1px 3px rgba(0,0,0,.35);
+      z-index:2;
+      pointer-events:none;
+    }
+
+    .workspace {
+      display:grid;
+      grid-template-columns:1.1fr .9fr;
+      gap:18px;
+      margin-top:18px;
+    }
+
+    .card {
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:22px;
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+
+    .card-head {
+      padding:16px 18px;
+      background:linear-gradient(180deg,#ffffff,#f4f9ff);
+      border-bottom:1px solid var(--line);
+    }
+
+    .card-head h2 {
+      margin:0;
+      font-size:22px;
+      color:#102033;
+    }
+
+    .card-body { padding:18px; }
+
+    .control-grid {
+      display:grid;
+      grid-template-columns:1fr;
+      gap:14px;
+    }
+
+    .control-box {
+      border:2px solid #e3edf9;
+      background:linear-gradient(180deg,#ffffff,#f7fbff);
+      border-radius:18px;
+      padding:14px;
+    }
+
+    .control-title {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      margin-bottom:10px;
+      font-weight:1000;
+      color:#243244;
+      font-size:18px;
+    }
+
+    .control-title span {
+      min-width:104px;
+      text-align:center;
+      color:#0b55a4;
+      background:#eaf4ff;
+      border:2px solid #cfe4ff;
+      padding:6px 10px;
+      border-radius:12px;
+      font-weight:1000;
+    }
+
+    input[type="range"] {
+      width:100%;
+      accent-color:var(--blue);
+      cursor:pointer;
+    }
+
+    select {
+      width:100%;
+      padding:12px;
+      border-radius:14px;
+      border:2px solid #cfe4ff;
+      background:#fff;
+      color:#102033;
+      font-weight:900;
+      font-size:16px;
+    }
+
+    .button-row {
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
+      margin-top:16px;
+    }
+
+    button {
+      border:0;
+      border-radius:16px;
+      padding:14px 16px;
+      font-size:17px;
+      font-weight:1000;
+      color:#fff;
+      cursor:pointer;
+      box-shadow:0 6px 0 rgba(0,0,0,.18), 0 12px 20px rgba(0,0,0,.12);
+    }
+
+    .start-btn {
+      grid-column:1/-1;
+      font-size:28px;
+      padding:18px 16px;
+      background:linear-gradient(#b9ff4e,#3fae12);
+      text-shadow:2px 2px 0 #24550a;
+      border:4px solid #2e6f0a;
+    }
+
+    .pause-btn { background:linear-gradient(#ffb347,#f57c00); }
+    .reset-btn { background:linear-gradient(#ff6b6b,#d93025); }
+    .mission-btn { background:linear-gradient(#3ccf7a,#0f9d58); }
+    .restart-btn { background:linear-gradient(#9b6cff,#6d35c9); }
+
+    .hint-box {
+      margin-top:14px;
+      padding:14px;
+      border-radius:16px;
+      background:#fff7df;
+      border:2px solid #ffe0a3;
+      color:#6b3a08;
+      font-weight:900;
+      line-height:1.45;
+    }
+
+    .values-grid {
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
+    }
+
+    .value-card {
+      border:2px solid #e3edf9;
+      background:#f7fbff;
+      border-radius:16px;
+      padding:12px;
+    }
+
+    .value-card b {
+      display:block;
+      color:var(--muted);
+      font-size:13px;
+      margin-bottom:4px;
+    }
+
+    .value-card span {
+      font-size:18px;
+      color:#0b3d7a;
+      font-weight:1000;
+    }
+
+    .explain-layout {
+      display:grid;
+      grid-template-columns:300px 1fr;
+      gap:16px;
+      align-items:center;
+    }
+
+    .diagram-box {
+      border:2px solid #e3edf9;
+      background:#fff7df;
+      border-radius:18px;
+      padding:12px;
+    }
+
+    #diagramCanvas {
+      width:100%;
+      height:190px;
+      display:block;
+    }
+
+    .formula-list {
+      margin:0;
+      padding:0;
+      list-style:none;
+      display:grid;
+      gap:8px;
+    }
+
+    .formula-list li {
+      background:#f7fbff;
+      border:1px solid #dbeafe;
+      padding:9px 12px;
+      border-radius:12px;
+      color:#0b55a4;
+      font-weight:900;
+      font-size:15px;
+    }
+
+    .learning-section {
+      display:grid;
+      grid-template-columns:repeat(2,1fr);
+      gap:18px;
+      margin-top:18px;
+    }
+
+    .learning-section ul,
+    .learning-section ol {
+      margin:0;
+      padding-left:22px;
+      line-height:1.65;
+      color:#39485c;
+    }
+
+    .learning-section p {
+      color:#39485c;
+      line-height:1.6;
+    }
+
+    footer {
+      text-align:center;
+      padding:10px 16px 32px;
+      color:#637083;
+      font-size:14px;
+    }
+
+    footer a {
+      color:#0b55a4;
+      font-weight:1000;
+      text-decoration:none;
+    }
+
+    footer a:hover { text-decoration:underline; }
+
+    @media(max-width:980px) {
+      .top-hud { grid-template-columns:repeat(2,1fr); }
+      .game-window { aspect-ratio:auto; min-height:440px; }
+      .workspace,
+      .learning-section,
+      .explain-layout { grid-template-columns:1fr; }
+      .values-grid { grid-template-columns:1fr; }
+      .button-row { grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body>
+<header>
+  <h1>Collision Arena</h1>
+  <p>NEET Physics sci-fi game: control masses, velocities and collision type to master momentum conservation</p>
+</header>
+
+<main class="app">
+  <section class="game-stage-card">
+    <div class="top-hud">
+      <div class="hud-box"><b>Score</b><span id="scoreText">0</span></div>
+      <div class="hud-box"><b>Level</b><span id="levelText">1</span></div>
+      <div class="hud-box"><b>High Score</b><span id="highScoreText">0</span></div>
+      <div class="hud-box"><b>Lives</b><span id="livesText">5</span></div>
+      <div class="hud-box"><b>Timer</b><span id="timerText">60s</span></div>
+    </div>
+
+    <div class="game-window">
+      <canvas id="gameCanvas" width="1280" height="640"></canvas>
+      <div class="game-message" id="messageBox">Ready: set masses, velocities and collision type.</div>
+      <div class="watermark">Dr AI Academy<br>AI Powered Physics Game Lab</div>
+    </div>
+  </section>
+
+  <section class="workspace">
+    <div class="card">
+      <div class="card-head"><h2>Arena Controls</h2></div>
+      <div class="card-body">
+        <div class="control-grid">
+          <div class="control-box">
+            <div class="control-title">Mass A m₁ <span id="m1Value">4 kg</span></div>
+            <input id="m1" type="range" min="1" max="20" step="1" value="4" />
+          </div>
+
+          <div class="control-box">
+            <div class="control-title">Velocity A u₁ <span id="u1Value">12 m/s</span></div>
+            <input id="u1" type="range" min="-25" max="25" step="1" value="12" />
+          </div>
+
+          <div class="control-box">
+            <div class="control-title">Mass B m₂ <span id="m2Value">6 kg</span></div>
+            <input id="m2" type="range" min="1" max="20" step="1" value="6" />
+          </div>
+
+          <div class="control-box">
+            <div class="control-title">Velocity B u₂ <span id="u2Value">-6 m/s</span></div>
+            <input id="u2" type="range" min="-25" max="25" step="1" value="-6" />
+          </div>
+
+          <div class="control-box">
+            <div class="control-title">Collision Mode <span id="modeValue">Elastic</span></div>
+            <select id="mode">
+              <option value="elastic" selected>Elastic Collision</option>
+              <option value="inelastic">Perfectly Inelastic Collision</option>
+              <option value="partial">Partially Elastic Collision</option>
+            </select>
+          </div>
+
+          <div class="control-box" id="eBox">
+            <div class="control-title">Coefficient of Restitution e <span id="eValue">0.50</span></div>
+            <input id="e" type="range" min="0" max="1" step="0.01" value="0.50" />
+          </div>
+        </div>
+
+        <div class="button-row">
+          <button class="start-btn" id="startBtn">START COLLISION</button>
+          <button class="pause-btn" id="pauseBtn">Pause</button>
+          <button class="reset-btn" id="resetBtn">Reset Round</button>
+          <button class="mission-btn" id="newMissionBtn">New Mission</button>
+          <button class="restart-btn" id="restartBtn">Restart Game</button>
+        </div>
+
+        <div class="hint-box" id="hintBox">Goal: Predict and observe final velocities after collision. Momentum should remain conserved.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>Live Physics Values</h2></div>
+      <div class="card-body">
+        <div class="values-grid">
+          <div class="value-card"><b>Initial Momentum</b><span id="pInitialValue">--</span></div>
+          <div class="value-card"><b>Final Momentum</b><span id="pFinalValue">--</span></div>
+          <div class="value-card"><b>Final Velocity A v₁</b><span id="v1Value">--</span></div>
+          <div class="value-card"><b>Final Velocity B v₂</b><span id="v2Value">--</span></div>
+          <div class="value-card"><b>Initial KE</b><span id="keInitialValue">--</span></div>
+          <div class="value-card"><b>Final KE</b><span id="keFinalValue">--</span></div>
+          <div class="value-card"><b>KE Loss</b><span id="keLossValue">--</span></div>
+          <div class="value-card"><b>Collision Type</b><span id="statusValue">--</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" style="margin-top:18px;">
+    <div class="card-head"><h2>Collision Diagram + Formulas</h2></div>
+    <div class="card-body explain-layout">
+      <div class="diagram-box">
+        <canvas id="diagramCanvas" width="300" height="190"></canvas>
+      </div>
+      <ul class="formula-list">
+        <li>Momentum: p = mv</li>
+        <li>Conservation of momentum: m₁u₁ + m₂u₂ = m₁v₁ + m₂v₂</li>
+        <li>Elastic collision: kinetic energy is conserved.</li>
+        <li>Perfectly inelastic collision: both bodies move together after collision.</li>
+        <li>Coefficient of restitution: e = speed of separation / speed of approach</li>
+        <li>Impulse changes momentum: J = Δp</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="learning-section">
+    <div class="card">
+      <div class="card-head"><h2>Simple Explanation</h2></div>
+      <div class="card-body">
+        <p>In a collision, total momentum of the system remains conserved when no external force acts. In elastic collision, kinetic energy is also conserved. In inelastic collision, kinetic energy is lost into heat, sound or deformation, but momentum is still conserved.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>NEET Traps</h2></div>
+      <div class="card-body">
+        <ul>
+          <li>Momentum is conserved in both elastic and inelastic collisions.</li>
+          <li>Kinetic energy is conserved only in perfectly elastic collision.</li>
+          <li>In perfectly inelastic collision, objects stick together.</li>
+          <li>Velocity sign matters: opposite direction means negative velocity.</li>
+          <li>Coefficient of restitution is between 0 and 1 for normal collisions.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>Observation Questions</h2></div>
+      <div class="card-body">
+        <ol>
+          <li>What remains conserved in every collision without external force?</li>
+          <li>Which collision conserves kinetic energy?</li>
+          <li>What happens in perfectly inelastic collision?</li>
+          <li>Why do we use negative velocity?</li>
+          <li>How does mass affect final velocity?</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>Learning Goal</h2></div>
+      <div class="card-body">
+        <ul>
+          <li>Visualize before and after collision.</li>
+          <li>Understand conservation of momentum.</li>
+          <li>Compare elastic and inelastic collision.</li>
+          <li>Observe kinetic energy loss clearly.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <a href="https://courses.draiacademy.com" target="_blank" rel="noopener">Dr AI Academy</a> | AI Powered Physics Game Lab
+</footer>
+
+<script>
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
+  const diagramCanvas = document.getElementById('diagramCanvas');
+  const dctx = diagramCanvas.getContext('2d');
+
+  const m1El = document.getElementById('m1');
+  const u1El = document.getElementById('u1');
+  const m2El = document.getElementById('m2');
+  const u2El = document.getElementById('u2');
+  const modeEl = document.getElementById('mode');
+  const eEl = document.getElementById('e');
+  const eBox = document.getElementById('eBox');
+
+  const m1Value = document.getElementById('m1Value');
+  const u1Value = document.getElementById('u1Value');
+  const m2Value = document.getElementById('m2Value');
+  const u2Value = document.getElementById('u2Value');
+  const modeValue = document.getElementById('modeValue');
+  const eValue = document.getElementById('eValue');
+
+  const scoreText = document.getElementById('scoreText');
+  const levelText = document.getElementById('levelText');
+  const highScoreText = document.getElementById('highScoreText');
+  const livesText = document.getElementById('livesText');
+  const timerText = document.getElementById('timerText');
+  const messageBox = document.getElementById('messageBox');
+  const hintBox = document.getElementById('hintBox');
+
+  const pInitialValue = document.getElementById('pInitialValue');
+  const pFinalValue = document.getElementById('pFinalValue');
+  const v1Value = document.getElementById('v1Value');
+  const v2Value = document.getElementById('v2Value');
+  const keInitialValue = document.getElementById('keInitialValue');
+  const keFinalValue = document.getElementById('keFinalValue');
+  const keLossValue = document.getElementById('keLossValue');
+  const statusValue = document.getElementById('statusValue');
+
+  const startBtn = document.getElementById('startBtn');
+  const pauseBtn = document.getElementById('pauseBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const newMissionBtn = document.getElementById('newMissionBtn');
+  const restartBtn = document.getElementById('restartBtn');
+
+  let score = 0;
+  let level = 1;
+  let lives = 5;
+  let timer = 60;
+  let paused = false;
+  let running = false;
+  let collisionDone = false;
+  let lastTime = 0;
+  let message = 'Ready: set masses, velocities and collision type.';
+  let highScore = Number(localStorage.getItem('drAiCollisionArenaHighScore') || 0);
+  let particles = [];
+  let botA, botB;
+
+  const arena = {
+    left: 120,
+    right: 1160,
+    midY: 340,
+    floorY: 430,
+    scale: 8
+  };
+
+  const stars = Array.from({length:90}, () => ({
+    x: Math.random() * 1280,
+    y: Math.random() * 640,
+    r: Math.random() * 1.8 + 0.5,
+    tw: Math.random() * 2 + 0.5
+  }));
+
+  function random(min, max) {
+    return Math.random() * (max - min) + min;
+  }
+
+  function format(num, unit) {
+    return Number.isFinite(num) ? num.toFixed(2) + ' ' + unit : '--';
+  }
+
+  function getInput() {
+    const m1 = Number(m1El.value);
+    const u1 = Number(u1El.value);
+    const m2 = Number(m2El.value);
+    const u2 = Number(u2El.value);
+    const mode = modeEl.value;
+    let e = Number(eEl.value);
+    if (mode === 'elastic') e = 1;
+    if (mode === 'inelastic') e = 0;
+
+    const pInitial = m1 * u1 + m2 * u2;
+    const v1 = ((m1 - e * m2) * u1 + (1 + e) * m2 * u2) / (m1 + m2);
+    const v2 = ((m2 - e * m1) * u2 + (1 + e) * m1 * u1) / (m1 + m2);
+    const pFinal = m1 * v1 + m2 * v2;
+    const keInitial = 0.5 * m1 * u1 * u1 + 0.5 * m2 * u2 * u2;
+    const keFinal = 0.5 * m1 * v1 * v1 + 0.5 * m2 * v2 * v2;
+    const keLoss = Math.max(0, keInitial - keFinal);
+
+    let status = 'Partially elastic';
+    if (mode === 'elastic') status = 'Elastic';
+    if (mode === 'inelastic') status = 'Perfectly inelastic';
+
+    return { m1, u1, m2, u2, mode, e, pInitial, v1, v2, pFinal, keInitial, keFinal, keLoss, status };
+  }
+
+  function updateUI() {
+    const input = getInput();
+    m1Value.textContent = input.m1 + ' kg';
+    u1Value.textContent = input.u1 + ' m/s';
+    m2Value.textContent = input.m2 + ' kg';
+    u2Value.textContent = input.u2 + ' m/s';
+    eValue.textContent = input.e.toFixed(2);
+    modeValue.textContent = input.status;
+    eBox.style.display = input.mode === 'partial' ? 'block' : 'none';
+
+    scoreText.textContent = Math.floor(score);
+    levelText.textContent = level;
+    highScoreText.textContent = Math.floor(highScore);
+    livesText.textContent = lives;
+    timerText.textContent = Math.ceil(timer) + 's';
+    messageBox.textContent = message;
+
+    pInitialValue.textContent = format(input.pInitial, 'kg m/s');
+    pFinalValue.textContent = format(input.pFinal, 'kg m/s');
+    v1Value.textContent = format(input.v1, 'm/s');
+    v2Value.textContent = format(input.v2, 'm/s');
+    keInitialValue.textContent = format(input.keInitial, 'J');
+    keFinalValue.textContent = format(input.keFinal, 'J');
+    keLossValue.textContent = format(input.keLoss, 'J');
+    statusValue.textContent = input.status;
+
+    if (input.mode === 'elastic') {
+      hintBox.textContent = 'Elastic collision: both momentum and kinetic energy are conserved.';
+    } else if (input.mode === 'inelastic') {
+      hintBox.textContent = 'Perfectly inelastic collision: both bots stick together after collision; momentum is conserved but KE is lost.';
+    } else {
+      hintBox.textContent = 'Partially elastic collision: coefficient of restitution controls bounce and KE loss.';
+    }
+  }
+
+  function resetBots() {
+    const input = getInput();
+    botA = { x: 260, y: arena.midY, v: input.u1 * arena.scale, r: 26 + input.m1 * 1.4, color: '#53d4ff', label: 'A' };
+    botB = { x: 1020, y: arena.midY, v: input.u2 * arena.scale, r: 26 + input.m2 * 1.4, color: '#ff7a68', label: 'B' };
+    collisionDone = false;
+  }
+
+  function drawBackground(time) {
+    const grad = ctx.createRadialGradient(640, 300, 40, 640, 300, 800);
+    grad.addColorStop(0, '#123c8c');
+    grad.addColorStop(0.45, '#071a45');
+    grad.addColorStop(1, '#020716');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.save();
+    stars.forEach(s => {
+      ctx.globalAlpha = 0.35 + 0.45 * Math.sin(time * 0.002 * s.tw + s.x);
+      ctx.fillStyle = '#dff7ff';
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    ctx.restore();
+
+    drawPlanet(150, 110, 56, '#b086ff', '#f1d5ff');
+    drawPlanet(1115, 115, 48, '#ffb36b', '#ffe0a4');
+  }
+
+  function drawPlanet(x, y, r, c1, c2) {
+    const grad = ctx.createRadialGradient(x - 16, y - 18, 8, x, y, r);
+    grad.addColorStop(0, c2);
+    grad.addColorStop(1, c1);
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  function drawArena() {
+    ctx.save();
+    ctx.fillStyle = 'rgba(83,212,255,.10)';
+    ctx.strokeStyle = 'rgba(83,212,255,.8)';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.roundRect(arena.left, 210, arena.right - arena.left, 300, 26);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.strokeStyle = 'rgba(255,255,255,.24)';
+    ctx.lineWidth = 2;
+    for (let x = arena.left + 50; x < arena.right; x += 80) {
+      ctx.beginPath();
+      ctx.moveTo(x, 230);
+      ctx.lineTo(x, 490);
+      ctx.stroke();
+    }
+
+    ctx.fillStyle = 'rgba(0,0,0,.25)';
+    ctx.beginPath();
+    ctx.ellipse(640, arena.floorY + 55, 450, 45, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = 'rgba(255,255,255,.6)';
+    ctx.lineWidth = 3;
+    ctx.setLineDash([12, 12]);
+    ctx.beginPath();
+    ctx.moveTo(640, 235);
+    ctx.lineTo(640, 485);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.fillStyle = '#fff2cc';
+    ctx.font = 'bold 18px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('COLLISION ZONE', 640, 205);
+    ctx.restore();
+  }
+
+  function drawBot(bot) {
+    ctx.save();
+    ctx.translate(bot.x, bot.y);
+
+    ctx.fillStyle = 'rgba(0,0,0,.25)';
+    ctx.beginPath();
+    ctx.ellipse(0, bot.r + 20, bot.r * 1.1, 12, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    const grad = ctx.createRadialGradient(-10, -12, 4, 0, 0, bot.r);
+    grad.addColorStop(0, '#ffffff');
+    grad.addColorStop(0.22, bot.color);
+    grad.addColorStop(1, '#15223f');
+    ctx.fillStyle = grad;
+    ctx.strokeStyle = '#ecf7ff';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.arc(0, 0, bot.r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 24px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(bot.label, 0, 8);
+
+    const dir = bot.v >= 0 ? 1 : -1;
+    if (Math.abs(bot.v) > 2) {
+      drawArrow(0, -bot.r - 20, dir * 72, -bot.r - 20, bot.color, 'v');
+    }
+    ctx.restore();
+  }
+
+  function drawArrow(x1, y1, x2, y2, color, label) {
+    const a = Math.atan2(y2 - y1, x2 - x1);
+    const h = 11;
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.fillStyle = color;
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x2, y2);
+    ctx.lineTo(x2 - h * Math.cos(a - Math.PI / 6), y2 - h * Math.sin(a - Math.PI / 6));
+    ctx.lineTo(x2 - h * Math.cos(a + Math.PI / 6), y2 - h * Math.sin(a + Math.PI / 6));
+    ctx.closePath();
+    ctx.fill();
+    ctx.font = 'bold 14px Arial';
+    ctx.fillText(label, x2 + 8, y2 - 8);
+    ctx.restore();
+  }
+
+  function drawParticles() {
+    ctx.save();
+    particles.forEach(p => {
+      ctx.globalAlpha = Math.max(0, p.life);
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 7 * p.life, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    ctx.restore();
+  }
+
+  function explode(x, y, color) {
+    for (let i = 0; i < 35; i++) {
+      particles.push({
+        x,
+        y,
+        vx: random(-250, 250),
+        vy: random(-220, 220),
+        life: 1,
+        color: color || (i % 2 ? '#ffdf3f' : '#53d4ff')
+      });
+    }
+  }
+
+  function updateBots(dt) {
+    if (!running || paused || lives <= 0 || !botA || !botB) return;
+    timer = Math.max(0, timer - dt);
+
+    botA.x += botA.v * dt;
+    botB.x += botB.v * dt;
+
+    const touching = Math.abs(botA.x - botB.x) <= botA.r + botB.r;
+
+    if (touching && !collisionDone) {
+      const input = getInput();
+      botA.v = input.v1 * arena.scale;
+      botB.v = input.v2 * arena.scale;
+      collisionDone = true;
+      explode((botA.x + botB.x) / 2, arena.midY, '#ffdf3f');
+      score += input.mode === 'elastic' ? 120 : input.mode === 'inelastic' ? 90 : 100;
+      level = Math.floor(score / 350) + 1;
+      highScore = Math.max(highScore, score);
+      localStorage.setItem('drAiCollisionArenaHighScore', String(highScore));
+      message = input.mode === 'elastic' ? 'Elastic collision! KE conserved.' : input.mode === 'inelastic' ? 'Inelastic collision! Bots stick together.' : 'Partial bounce! Momentum conserved.';
+    }
+
+    if (collisionDone && (botA.x < arena.left - 80 || botA.x > arena.right + 80 || botB.x < arena.left - 80 || botB.x > arena.right + 80)) {
+      running = false;
+      message = 'Round complete. Change values or start again.';
+    }
+
+    if (timer <= 0 && lives > 0) {
+      running = false;
+      lives -= 1;
+      message = lives > 0 ? 'Time up! Try faster collision setup.' : 'Game Over';
+    }
+  }
+
+  function updateParticles(dt) {
+    particles.forEach(p => {
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+      p.life -= dt * 1.25;
+    });
+    particles = particles.filter(p => p.life > 0);
+  }
+
+  function drawDiagram() {
+    dctx.clearRect(0, 0, diagramCanvas.width, diagramCanvas.height);
+    dctx.fillStyle = '#fff7df';
+    dctx.fillRect(0, 0, diagramCanvas.width, diagramCanvas.height);
+
+    dctx.strokeStyle = '#cbd9ec';
+    dctx.lineWidth = 3;
+    dctx.beginPath();
+    dctx.moveTo(28, 115);
+    dctx.lineTo(272, 115);
+    dctx.stroke();
+
+    dctx.fillStyle = '#53d4ff';
+    dctx.beginPath();
+    dctx.arc(80, 115, 26, 0, Math.PI * 2);
+    dctx.fill();
+    dctx.fillStyle = '#ff7a68';
+    dctx.beginPath();
+    dctx.arc(220, 115, 32, 0, Math.PI * 2);
+    dctx.fill();
+
+    dctx.fillStyle = '#102033';
+    dctx.font = 'bold 16px Arial';
+    dctx.textAlign = 'center';
+    dctx.fillText('m₁', 80, 121);
+    dctx.fillText('m₂', 220, 121);
+
+    dArrow(80, 65, 135, 65, '#0f9d58', 'u₁');
+    dArrow(220, 65, 170, 65, '#d93025', 'u₂');
+
+    dctx.fillStyle = '#102033';
+    dctx.font = 'bold 13px Arial';
+    dctx.fillText('Collision: momentum conserved', 150, 28);
+    dctx.fillText('Before → impact → after', 150, 168);
+  }
+
+  function dArrow(x1, y1, x2, y2, color, label) {
+    const a = Math.atan2(y2 - y1, x2 - x1);
+    const h = 9;
+    dctx.strokeStyle = color;
+    dctx.fillStyle = color;
+    dctx.lineWidth = 3;
+    dctx.beginPath();
+    dctx.moveTo(x1, y1);
+    dctx.lineTo(x2, y2);
+    dctx.stroke();
+    dctx.beginPath();
+    dctx.moveTo(x2, y2);
+    dctx.lineTo(x2 - h * Math.cos(a - Math.PI / 6), y2 - h * Math.sin(a - Math.PI / 6));
+    dctx.lineTo(x2 - h * Math.cos(a + Math.PI / 6), y2 - h * Math.sin(a + Math.PI / 6));
+    dctx.closePath();
+    dctx.fill();
+    dctx.font = 'bold 13px Arial';
+    dctx.fillText(label, x2 + 5, y2 - 5);
+  }
+
+  function startCollision() {
+    if (lives <= 0) return;
+    resetBots();
+    running = true;
+    paused = false;
+    timer = 60;
+    message = 'Collision round started!';
+    pauseBtn.textContent = 'Pause';
+  }
+
+  function resetRound() {
+    running = false;
+    paused = false;
+    resetBots();
+    timer = 60;
+    message = 'Round reset.';
+    pauseBtn.textContent = 'Pause';
+  }
+
+  function newMission() {
+    running = false;
+    paused = false;
+    m1El.value = Math.round(random(2, 14));
+    m2El.value = Math.round(random(2, 16));
+    u1El.value = Math.round(random(8, 22));
+    u2El.value = -Math.round(random(4, 18));
+    const modes = ['elastic','inelastic','partial'];
+    modeEl.value = modes[Math.floor(random(0, modes.length))];
+    eEl.value = random(0.2, 0.85).toFixed(2);
+    resetBots();
+    timer = 60;
+    message = 'New collision mission generated.';
+    pauseBtn.textContent = 'Pause';
+  }
+
+  function restartGame() {
+    score = 0;
+    level = 1;
+    lives = 5;
+    timer = 60;
+    running = false;
+    paused = false;
+    particles = [];
+    resetBots();
+    message = 'New game started.';
+    pauseBtn.textContent = 'Pause';
+  }
+
+  function gameLoop(timestamp) {
+    if (!lastTime) lastTime = timestamp;
+    const dt = Math.min(0.04, (timestamp - lastTime) / 1000);
+    lastTime = timestamp;
+
+    if (!paused) {
+      updateBots(dt);
+      updateParticles(dt);
+    }
+
+    updateUI();
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawBackground(timestamp);
+    drawArena();
+    drawBot(botA);
+    drawBot(botB);
+    drawParticles();
+    drawDiagram();
+
+    requestAnimationFrame(gameLoop);
+  }
+
+  [m1El, u1El, m2El, u2El, modeEl, eEl].forEach(el => {
+    el.addEventListener('input', () => {
+      updateUI();
+      if (!running) resetBots();
+    });
+    el.addEventListener('change', () => {
+      updateUI();
+      if (!running) resetBots();
+    });
+  });
+
+  startBtn.addEventListener('click', startCollision);
+  pauseBtn.addEventListener('click', () => {
+    paused = !paused;
+    pauseBtn.textContent = paused ? 'Resume' : 'Pause';
+    message = paused ? 'Paused' : 'Ready';
+  });
+  resetBtn.addEventListener('click', resetRound);
+  newMissionBtn.addEventListener('click', newMission);
+  restartBtn.addEventListener('click', restartGame);
+
+  resetBots();
+  updateUI();
+  drawDiagram();
+  requestAnimationFrame(gameLoop);
+</script>
+</body>
+</html>
